@@ -42,7 +42,7 @@ goto all
 goto watchdog
 
 :check
-if not %enter%==nul (
+if defined enter (
 if %enter_mode%==img (
 for /f "tokens=2" %%a in ('tasklist /fi "imagename eq %enter%" ^| findstr /b /i %enter%') do set pid=%%a &goto start
 for /f "tokens=2" %%a in ('tasklist /fi "imagename eq %enter%.exe" ^| findstr /b /i %enter%.exe') do set pid=%%a &goto start
