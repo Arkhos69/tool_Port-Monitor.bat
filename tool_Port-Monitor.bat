@@ -86,13 +86,16 @@ set "LH="
 set "b=%%b" &set "c=%%c"
 for %%l in (%localhost% %nullhost% [::]) do ^
 set "l=%%l" &if "!c:~0,4!"=="!l:~0,4!" (set "LH=1"
-if %%d==LISTENING (set /a listen[0][0]+=1 &set /a listen[1][0]+=1
+if %%d==LISTENING (set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
 set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!") ^
-else if %%d==ESTABLISHED (set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!"))
+else if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
+set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!"))
+
 if not defined LH ^
-if %%d==ESTABLISHED (set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
+if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
+set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
-else if not %list_w%==%pid% (set "kill_port=!output[%%0]!" &goto kill)))
+else if %list_w%==%pid% (set /a listen[2][0]+=1) else (set "kill_port=!output[%%0]!" &goto kill)))
 for /l %%0 in (1, 1, !count!) do set "output[!count!]="
 
 if "%color_text%"=="1" (
