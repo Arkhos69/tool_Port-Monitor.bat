@@ -5,8 +5,8 @@ goto init
 :setting
 color 0e
 set detail=1
-set coolstuff=1
-set mode=img
+set coolstuff=0
+set mode=pid
 exit /B
 
 :main
@@ -33,9 +33,9 @@ echo. &echo Commands:
 for %%a in (%cmd_all%) do echo /%%a
 pause &goto main
 :/img
-set mode=img &set enter=nul &goto main
+set "mode=img" &set "enter=" &goto main
 :/pid
-set mode=pid &set enter=nul &goto main
+set "mode=pid" &set "enter=" &goto main
 :/all
 goto all
 :/wg
@@ -99,8 +99,13 @@ if %%0==0 echo   %ESC%[103;30m!sort[%%0][%%1]!%ESC%[0m
 if %%0==1 echo   %ESC%[46;30m!sort[%%0][%%1]!%ESC%[0m
 if %%0==2 echo   %ESC%[47;30m!sort[%%0][%%1]!%ESC%[0m
 if %%0==3 echo   %ESC%[44;1m!sort[%%0][%%1]!%ESC%[0m))) ^
-else (for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo. &if %%0==2 (echo ESTABLISHED: &echo.) ^
-else if %%0==2 if !sortc[1]!==0 (echo ESTABLISHED: &echo.)) &for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
+else (set "state_space=                              "
+for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (
+echo.
+if %%0==1 echo   !state_space![HANDSHAKE] &echo.
+if %%0==2 echo   !state_space![ESTABLISHED] &echo.
+if %%0==3 if !sortc[2]!==0 echo   !state_space![ESTABLISHED] &echo.
+for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!)))
 
 set /a total[0][0]=!count!
 if %bln%==1 (for /l %%a in (0, 1, 2) do (set /a est[%%a][2]=est[%%a][0] &set /a total[%%a][2]=total[%%a][0]) &set bln=0)
