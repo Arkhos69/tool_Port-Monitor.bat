@@ -27,7 +27,7 @@ goto check
 
 REM Commands
 :/help
-set enter=nul
+set "enter="
 echo [help]
 echo. &echo Commands:
 for %%a in (%cmd_all%) do echo /%%a
