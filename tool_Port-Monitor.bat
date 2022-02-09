@@ -317,6 +317,8 @@ for /l %%a in (0, 1, 2) do for /l %%b in (0, 1, 2) do (
 set /a total[%%a][%%b]=0 &set /a est[%%a][%%b]=0 &set /a listen[%%a][%%b]=0
 set /a estc[%%a][%%b]=0)
 call :setting
+if not defined detail set detail=1
+if not defined mode set "mode=img"
 cls &goto main
 
 REM Cool Stuff win10colors.cmd by Michele Locati (github/mlocati). Respect!!!
