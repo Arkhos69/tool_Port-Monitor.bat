@@ -71,12 +71,6 @@ for /f "tokens=5" %%b in ("%%a") do if %%b==%pid% set/a count+=1 &set output[!co
 
 if !count!==0 (echo. &echo ^(Empty^)) else (
 for /l %%0 in (1, 1, !count!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
-for /f "delims=:" %%k in ("%%c") do if %%d==LISTENING (
-set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]!"
-set /a listen[0][0]+=1 &set /a listen[1][0]+=1
-if not %%k==%localhost% if not %%k==%nullhost% if not %%c==[::]:0 (
-if not %list_w%==%pid% (set "killstr=!output[%%0]!" &goto kill) else (set /a listen[2][0]+=1))) ^
-else if not %%d==ESTABLISHED (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") else (set /a est[0][0]+=1)
 
 if "%show_detail%"=="1" (set "bool="
 for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_cnt%) do (
@@ -84,6 +78,12 @@ if %%p==!port_list[%%1][0]! (set "bool=1") else (if %%q==!port_list[%%1][0]! set
 if defined bool set "var1=%%0" &set "var2=%%1" & ^
 set "varp=!port_list[%%1][0]!" &set "port_info=!port_list[%%1][1]!" & call :port_replace)
 set "output[%%0]=!output[%%0]:%localhost%=localhost!")
+
+for /f "delims=:" %%k in ("%%c") do if %%d==LISTENING (
+set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]!" &set /a listen[0][0]+=1 &set /a listen[1][0]+=1
+if not %%k==%localhost% if not %%k==%nullhost% if not %%c==[::]:0 (
+if not %list_w%==%pid% (set "killstr=!output[%%0]!" &goto kill) else (set /a listen[2][0]+=1))) ^
+else if not %%d==ESTABLISHED (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") else (set /a est[0][0]+=1)
 
 for /f "delims=:" %%l in ("%%b") do (
 if %%l==%localhost% (set /a total[1][0]+=1) else (set /a total[2][0]+=1)
