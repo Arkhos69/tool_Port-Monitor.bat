@@ -1,20 +1,20 @@
 @echo off &setlocal EnableDelayedExpansion
 call :setESC &call :port_list
-goto init
+call :setting &goto init
 
 :setting
-color 0e
-set detail=1
-set coolstuff=0
-set mode=pid
+set show_detail=1
+set color_text=1
+set enter_mode=img
 exit /B
 
 :main
 cls
 if "%enter%"=="exit" exit
-if not defined enter (if "%mode%"=="img" (
-set /p "enter=Please enter The Image name(or /pid):") ^
-else if "%mode%"=="pid" (set /p "enter=Please enter The PID(or /img):")
+if not defined enter (
+if "%enter_mode%"=="img" (set /p "enter=Please enter The Image name(or /pid):") ^
+else if "%enter_mode%"=="pid" (set /p "enter=Please enter The PID(or /img):") ^
+else (set "enter_mode=img")
 ) else (goto command)
 goto main
 
@@ -33,9 +33,9 @@ echo. &echo Commands:
 for %%a in (%cmd_all%) do echo /%%a
 pause &goto main
 :/img
-set "mode=img" &set "enter=" &goto main
+set "enter_mode=img" &set "enter=" &goto main
 :/pid
-set "mode=pid" &set "enter=" &goto main
+set "enter_mode=pid" &set "enter=" &goto main
 :/all
 goto all
 :/wg
@@ -43,10 +43,10 @@ goto watchdog
 
 :check
 if not %enter%==nul (
-if %mode%==img (
+if %enter_mode%==img (
 for /f "tokens=2" %%a in ('tasklist /fi "imagename eq %enter%" ^| findstr /b /i %enter%') do set pid=%%a &goto start
 for /f "tokens=2" %%a in ('tasklist /fi "imagename eq %enter%.exe" ^| findstr /b /i %enter%.exe') do set pid=%%a &goto start
-) else if %mode%==pid (
+) else if %enter_mode%==pid (
 tasklist /fi "pid eq %enter%" | findstr %enter% 2>&1>nul
 if !errorlevel!==0 set pid=%enter% &goto start))
 set "enter=" &goto main
@@ -78,7 +78,7 @@ if not %%k==%localhost% if not %%k==%nullhost% if not %%c==[::]:0 (
 if not %list_w%==%pid% (set "killstr=!output[%%0]!" &goto kill) else (set /a listen[2][0]+=1))) ^
 else if not %%d==ESTABLISHED (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") else (set /a est[0][0]+=1)
 
-if "%detail%"=="1" (set "bool="
+if "%show_detail%"=="1" (set "bool="
 for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_cnt%) do (
 if %%p==!port_list[%%1][0]! (set "bool=1") else (if %%q==!port_list[%%1][0]! set "bool=1")
 if defined bool set "var1=%%0" &set "var2=%%1" & ^
@@ -92,7 +92,7 @@ set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]!" &set /a est[1][0]+=1
 else if not %%l==nul set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!" &set /a est[2][0]+=1))
 for /l %%0 in (1, 1, !count!) do set "output[!count!]="
 
-if "%coolstuff%"=="1" (
+if "%color_text%"=="1" (
 for /l %%0 in (0, 1, !slen!) do (if not !sortc[%%0]!==0 echo.
 for /l %%1 in (1, 1, !sortc[%%0]!) do (
 if %%0==0 echo   %ESC%[103;30m!sort[%%0][%%1]!%ESC%[0m
@@ -313,7 +313,7 @@ echo.
 goto wg_loop
 
 :init
-title=Port Monitor &chcp 1252 >nul
+title=Port Monitor &color 0e &chcp 1252 >nul
 set "enter=" &set pid=0 &set imgname=0
 set /a total[3][3] &set /a est[3][3] &set /a listen[3][3]
 set /a estc[3][3]
@@ -321,9 +321,8 @@ set bln=1 &set list_w=nul &set list_b=nul
 for /l %%a in (0, 1, 2) do for /l %%b in (0, 1, 2) do (
 set /a total[%%a][%%b]=0 &set /a est[%%a][%%b]=0 &set /a listen[%%a][%%b]=0
 set /a estc[%%a][%%b]=0)
-call :setting
-if not defined detail set detail=1
-if not defined mode set "mode=img"
+if not defined enter_mode set "enter_mode=img"
+if not defined show_detail set show_detail=1
 cls &goto main
 
 REM Cool Stuff win10colors.cmd by Michele Locati (github/mlocati). Respect!!!
