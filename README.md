@@ -5,7 +5,7 @@
 This tool can do:
 
 - Sort State type
-- Show Port info (:443=https, localhost)
+- Show Port info (e.g. :443=https, localhost)
 - Count Ports and Show Dynamic stat table
 - Check "LISTENING" Port is connect to Foreign Host
 - Can be more clearly to check port.
