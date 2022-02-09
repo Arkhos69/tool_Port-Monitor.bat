@@ -6,6 +6,7 @@ call :setting &goto init
 set show_detail=1
 set color_text=1
 set enter_mode=img
+set quick_mode=0
 exit /B
 
 :main
@@ -20,7 +21,7 @@ goto main
 
 :command
 set "cmd_all=img pid all wg"
-if %enter:~0,1%==/ (
+if "!enter:~0,1!"=="/" (
 for %%a in (%cmd_all%) do if !enter:~1!==%%a goto %enter%
 goto /help)
 goto check
@@ -57,7 +58,8 @@ echo loading......
 for /f "tokens=1" %%a in ('tasklist /fi "pid eq %pid%" ^| findstr %pid%') do set imgname=%%a
 title=Port Monitor - %imgname%
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
-set "enter=" &goto loop
+set "enter="
+if "%quick_mode%"=="1" (color 0a &goto quick_loop) else (goto loop)
 
 :loop
 cls
@@ -79,17 +81,18 @@ if defined bool set "var1=%%0" &set "var2=%%1" & ^
 set "varp=!port_list[%%1][0]!" &set "port_info=!port_list[%%1][1]!" & call :port_replace)
 set "output[%%0]=!output[%%0]:%localhost%=localhost!")
 
-for /f "delims=:" %%k in ("%%c") do if %%d==LISTENING (
-set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]!" &set /a listen[0][0]+=1 &set /a listen[1][0]+=1
-if not %%k==%localhost% if not %%k==%nullhost% if not %%c==[::]:0 (
-if not %list_w%==%pid% (set "killstr=!output[%%0]!" &goto kill) else (set /a listen[2][0]+=1))) ^
-else if not %%d==ESTABLISHED (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") else (set /a est[0][0]+=1)
-
-for /f "delims=:" %%l in ("%%b") do (
-if %%l==%localhost% (set /a total[1][0]+=1) else (set /a total[2][0]+=1)
-if %%d==ESTABLISHED if %%l==%localhost% (
-set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]!" &set /a est[1][0]+=1) ^
-else if not %%l==nul set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!" &set /a est[2][0]+=1))
+if %%a==TCP (
+set "LH="
+set "b=%%b" &set "c=%%c"
+for %%l in (%localhost% %nullhost% [::]) do ^
+set "l=%%l" &if "!c:~0,4!"=="!l:~0,4!" (set "LH=1"
+if %%d==LISTENING (set /a listen[0][0]+=1 &set /a listen[1][0]+=1
+set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!") ^
+else if %%d==ESTABLISHED (set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!"))
+if not defined LH ^
+if %%d==ESTABLISHED (set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
+else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
+else if not %list_w%==%pid% (set "kill_port=!output[%%0]!" &goto kill)))
 for /l %%0 in (1, 1, !count!) do set "output[!count!]="
 
 if "%color_text%"=="1" (
@@ -123,6 +126,25 @@ set /a data_len=3
 set "data[1]=LISTENING !listen[0][0]! !listen[1][0]!_(!listen[1][1]!|!listen[1][2]!) !listen[2][0]!_(!listen[2][1]!|!listen[2][2]!)"
 set "data[2]=ESTABLISHED !est[0][0]! !est[1][0]!_(!est[1][1]!|!est[1][2]!) !est[2][0]!_(!est[2][1]!|!est[2][2]!)"
 set "data[3]=Total %total[0][0]% %total[1][0]%_(%total[1][1]%|%total[1][2]%) %total[2][0]%_(%total[2][1]%|%total[2][2]%)"
+call :table
+
+if not !Title_Instant_Print!==true (
+echo. &echo   !title_print:_= ! &echo.
+for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
+set "title_print="
+
+title=Port Monitor - %imgname%(%pid%) Total:%total[0][0]% [Est:%est[0][0]% (LH:%est[1][0]% FH:%est[2][0]%)]
+REM timeout /T 3
+echo.
+choice /n /c pmnxc /t 3 /d c /m "P - Pause | M - Back to menu:"
+if %errorlevel%==1 pause
+if %errorlevel%==2 goto init
+if %errorlevel%==3 start %~f0
+if %errorlevel%==4 exit
+tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
+goto loop
+
+:table
 for /l %%0 in (1, 1, !interval!) do set interval_= !interval_!
 for %%a in (!title!) do set "title_print=!title_print!%%a!interval_!" &set "interval_=!interval_:~0,6!"
 set "interval_="
@@ -157,22 +179,33 @@ set /a space_[%%0]=0 &set "data_[%%0]=")
 
 if !Title_Instant_Print!==true echo !table[%%t]!
 ) else (set data[%%T]=NULL))
+exit /b
 
-if not !Title_Instant_Print!==true (
-echo. &echo   !title_print:_= ! &echo.
-for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
-set "title_print="
-
-title=Port Monitor - %imgname%(%pid%) Total:%total[0][0]% [Est:%est[0][0]% (LH:%est[1][0]% FH:%est[2][0]%)]
-REM timeout /T 3
+:quick_loop
+cls
+echo [Quick mode] Image Name: %imgname% ^| PID: %pid% &echo.
+echo   Proto  Local Address          Foreign Address        State           PID
+set /a count=0 &set /a slen=2 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]=0
+for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do (
+for /f "tokens=5" %%b in ("%%a") do if %%b==%pid% set/a count+=1 &set output[!count!]=%%a)
+if !count!==0 (echo. &echo ^(Empty^)) else (
+for /l %%0 in (1, 1, !count!) do for /f "tokens=4" %%a in ("!output[%%0]!") do (
+if %%a==LISTENING (set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]!") ^
+else if %%a==ESTABLISHED (set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]!") ^
+else (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!"))
+set "state_space=                              "
+for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (
 echo.
-choice /n /c pmnxc /t 3 /d c /m "P - Pause | M - Back to menu:"
+if %%0==1 echo   !state_space![HANDSHAKE] &echo.
+if %%0==2 echo   !state_space![ESTABLISHED] &echo.
+for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
+echo.
+choice /n /c pmnxc /t 1 /d c /m "P - Pause | M - Back to menu:"
 if %errorlevel%==1 pause
 if %errorlevel%==2 goto init
 if %errorlevel%==3 start %~f0
 if %errorlevel%==4 exit
-tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
-goto loop
+goto quick_loop
 
 :port_replace
 set "output[%var1%]=!output[%var1%]::%varp%=:%port_info%!"
@@ -187,7 +220,7 @@ REM /!\ #undone1
 :kill
 cls &color 4f
 tasklist /fi "pid eq %pid%" &echo.
-echo %killstr% &echo. &goto kill_
+echo %kill_port% &echo. &goto kill_
 :kill_
 set /p "enter=The Port "LISTENING" had Connect to Foreign Host. Do you want to *KILL* this Process(%imgname%)?[y/n]:"
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || echo %imgname% is Closed. &&goto kill_close
@@ -313,17 +346,18 @@ echo.
 goto wg_loop
 
 :init
+cls
 title=Port Monitor &color 0e &chcp 1252 >nul
 set "enter=" &set pid=0 &set imgname=0
 set /a total[3][3] &set /a est[3][3] &set /a listen[3][3]
 set /a estc[3][3]
 set bln=1 &set list_w=nul &set list_b=nul
-for /l %%a in (0, 1, 2) do for /l %%b in (0, 1, 2) do (
-set /a total[%%a][%%b]=0 &set /a est[%%a][%%b]=0 &set /a listen[%%a][%%b]=0
-set /a estc[%%a][%%b]=0)
+for /l %%0 in (0, 1, 2) do for /l %%1 in (0, 1, 2) do (
+set /a total[%%0][%%1]=0 &set /a est[%%0][%%1]=0
+set /a listen[%%0][%%1]=0 &set /a hand[%%0][%%1]=0 &set /a estc[%%0][%%1]=0)
 if not defined enter_mode set "enter_mode=img"
 if not defined show_detail set show_detail=1
-cls &goto main
+goto main
 
 REM Cool Stuff win10colors.cmd by Michele Locati (github/mlocati). Respect!!!
 :setESC
