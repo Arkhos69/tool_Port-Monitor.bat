@@ -6,7 +6,7 @@ call :setting &goto init
 set show_detail=1
 set color_text=1
 set quick_mode=0
-set enter_mode=pid
+set enter_mode=img
 exit /B
 
 :main
