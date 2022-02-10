@@ -83,12 +83,14 @@ set "output[%%0]=!output[%%0]:%localhost%=localhost!")
 
 if %%a==TCP (set /a cnt=0 &set "c=%%c"
 for %%l in (%localhost% %nullhost% [::]) do ^
-set /a cnt+=1 &set "l=%%l" &if "!c:~0,4!"=="!l:~0,4!" (set /a cnt=0
+set /a cnt+=1 &set "l=%%l" & ^
+if "!c:~0,4!"=="!l:~0,4!" (set /a total[1][0]+=1 &set /a cnt=0
 if %%d==LISTENING (set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
 set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!") ^
 else if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
 set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!")) ^
-else if !cnt!==3 (if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
+else if !cnt!==3 (set /a total[2][0]+=1
+if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
 set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
 else if %list_w%==%pid% (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)))
@@ -102,8 +104,7 @@ if %%0==1 echo   %ESC%[46;30m!sort[%%0][%%1]!%ESC%[0m
 if %%0==2 echo   %ESC%[47;30m!sort[%%0][%%1]!%ESC%[0m
 if %%0==3 echo   %ESC%[44;1m!sort[%%0][%%1]!%ESC%[0m))) ^
 else (set "state_space=                              "
-for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (
-echo.
+for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo.
 if %%0==1 echo   !state_space![HANDSHAKE] &echo.
 if %%0==2 echo   !state_space![ESTABLISHED] &echo.
 if %%0==3 if !sortc[2]!==0 echo   !state_space![ESTABLISHED] &echo.
@@ -111,13 +112,10 @@ for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!)))
 
 set /a total[0][0]=!count!
 if %bln%==1 (for /l %%a in (0, 1, 2) do (set /a est[%%a][2]=est[%%a][0] &set /a total[%%a][2]=total[%%a][0]) &set bln=0)
-for /l %%0 in (0, 1, 2) do (
-if !est[%%0][0]! gtr !est[%%0][1]! (set "est[%%0][1]=!est[%%0][0]!") ^
-else if !est[%%0][0]! lss !est[%%0][2]! (set "est[%%0][2]=!est[%%0][0]!")
-if !total[%%0][0]! gtr !total[%%0][1]! (set "total[%%0][1]=!total[%%0][0]!") ^
-else if !total[%%0][0]! lss !total[%%0][2]! (set "total[%%0][2]=!total[%%0][0]!")
-if !listen[%%0][0]! gtr !listen[%%0][1]! (set "listen[%%0][1]=!listen[%%0][0]!") ^
-else if !listen[%%0][0]! lss !listen[%%0][2]! (set "listen[%%0][2]=!listen[%%0][0]!"))
+
+for /l %%0 in (0, 1, 2) do for %%a in (est total listen) do ^
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
 
 set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
 set /a interval=8 &set Title_Instant_Print=false
