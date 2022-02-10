@@ -3,7 +3,7 @@ call :setESC &call :port_list
 call :setting &goto init
 
 :setting
-set show_detail=1
+set show_detail=0
 set color_text=1
 set quick_mode=0
 set enter_mode=img
@@ -94,7 +94,6 @@ if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
 set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
 else if %list_w%==%pid% (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)))
-for /l %%0 in (1, 1, !count!) do set "output[!count!]="
 
 if "%color_text%"=="1" (
 for /l %%0 in (0, 1, !slen!) do (if not !sortc[%%0]!==0 echo.
@@ -108,7 +107,8 @@ for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo.
 if %%0==1 echo   !state_space![HANDSHAKE] &echo.
 if %%0==2 echo   !state_space![ESTABLISHED] &echo.
 if %%0==3 if !sortc[2]!==0 echo   !state_space![ESTABLISHED] &echo.
-for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!)))
+for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
+for /l %%0 in (1, 1, !count!) do set "output[!count!]=")
 
 set /a total[0][0]=!count!
 if %bln%==1 (for /l %%a in (0, 1, 2) do (set /a est[%%a][2]=est[%%a][0] &set /a total[%%a][2]=total[%%a][0]) &set bln=0)
@@ -125,15 +125,10 @@ set "data[2]=ESTABLISHED !est[0][0]! !est[1][0]!_(!est[1][1]!|!est[1][2]!) !est[
 set "data[3]=Total %total[0][0]% %total[1][0]%_(%total[1][1]%|%total[1][2]%) %total[2][0]%_(%total[2][1]%|%total[2][2]%)"
 call :table
 
-if not !Title_Instant_Print!==true (
-echo. &echo   !title_print:_= ! &echo.
-for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
-set "title_print="
-
 title=Port Monitor - %imgname%(%pid%) Total:%total[0][0]% [Est:%est[0][0]% (LH:%est[1][0]% FH:%est[2][0]%)]
-REM timeout /T 3
+
 echo.
-choice /n /c pmnxc /t 3 /d c /m "P - Pause | M - Back to menu:"
+choice /n /c pmnxc /t 3 /d c /m "[P - Pause] [M - Back to Menu]:"
 if %errorlevel%==1 pause
 if %errorlevel%==2 goto init
 if %errorlevel%==3 start %~f0
@@ -176,6 +171,11 @@ set /a space_[%%0]=0 &set "data_[%%0]=")
 
 if !Title_Instant_Print!==true echo !table[%%t]!
 ) else (set data[%%T]=NULL))
+
+if not !Title_Instant_Print!==true (
+echo. &echo   !title_print:_= ! &echo.
+for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
+set "title_print="
 exit /b
 
 :quick_loop
@@ -249,53 +249,84 @@ goto init
 REM /!\ #undone2
 :all
 cls
-set /a count=0 &set /a slen=2 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]=0
-for /l %%0 in (0, 1, 2) do set /a total[%%0][0]=0 &set /a est[%%0][0]=0
+set /a count=0 &set /a slen=4 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]=0
+for /l %%0 in (0, 1, 2) do ^
+set /a total[%%0][0]=0 &set /a est[%%0][0]=0 &set /a listen[%%0][0]=0
 
 for /f "tokens=*" %%a in ('netstat -ano') do set /a count+=1 &set output[!count!]=%%a
 
 if !count!==0 (echo. &echo ^(Empty^)) else (
-for /l %%0 in (1, 1, !count!) do (for /f "tokens=1-5" %%a in ("!output[%%0]!") do (for /f "delims=:" %%l in ("%%b") do (
-if %%l==127.0.0.1 (set /a total[1][0]+=1) else (set /a total[2][0]+=1)
-if not %%d==ESTABLISHED (set /a sortc[0]+=1 &set sort[0][!sortc[0]!]=!output[%%0]!) else (set /a est[0][0]+=1)
-if %%d==ESTABLISHED if %%l==127.0.0.1 (set /a sortc[1]+=1 &set sort[1][!sortc[1]!]=!output[%%0]!
-) else if not %%l==nul (set /a sortc[2]+=1 &set sort[2][!sortc[2]!]=!output[%%0]!))))
-if %detail%==0 (
-for /l %%0 in (0, 1, !slen!) do (if not !sortc[%%0]!==0 (echo. &if %%0==1 (echo ESTABLISHED: &echo.
-) else if %%0==2 if !sortc[1]!==0 echo ESTABLISHED: &echo.) &for /l %%1 in (1, 1, !sortc[%%0]!) do (echo   !sort[%%0][%%1]!))
-) else if %detail%==1 (
-set /a count=0
-for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do (
-for /f "tokens=5" %%b in ("%%a") do (if %%b==%pid% (set/a count+=1 &set output!count!=%%a)))
+for /l %%0 in (1, 1, !count!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
 
-for /l %%0 in (0, 1, !slen!) do (if not !sortc[%%0]!==0 (echo. &if %%0==1 (echo ESTABLISHED: &echo.
-) else if %%0==2 if !sortc[1]!==0 echo ESTABLISHED: &echo.) &for /l %%1 in (1, 1, !sortc[%%0]!) do (
-set temp=!sort[%%0][%%1]! &set temp=!temp:127.0.0.1=[localhost]! &set temp=!temp::443=:https!
-for /f "tokens=5" %%a in ("!sort[%%0][%%1]!") do (
-for /f "tokens=1" %%b in ('tasklist /fi "pid eq %%a" ^| findstr %%a') do (set temp=!temp:%%a=%%b!))
-echo   !temp!))))
+if "%show_detail%"=="1" (set "bool="
+for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_cnt%) do (
+if %%p==!port_list[%%1][0]! (set "bool=1") else (if %%q==!port_list[%%1][0]! set "bool=1")
+if defined bool set "var1=%%0" &set "var2=%%1" & ^
+set "varp=!port_list[%%1][0]!" &set "port_info=!port_list[%%1][1]!" & call :port_replace)
+set "output[%%0]=!output[%%0]:%localhost%=localhost!")
+
+if %%a==TCP (set /a cnt=0 &set "c=%%c"
+for %%l in (%localhost% %nullhost% [::]) do ^
+set /a cnt+=1 &set "l=%%l" & ^
+if "!c:~0,4!"=="!l:~0,4!" (set /a total[1][0]+=1 &set /a cnt=0
+if %%d==LISTENING (set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
+set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!") ^
+else if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
+set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!")) ^
+else if !cnt!==3 (set /a total[2][0]+=1
+if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
+set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
+else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
+else if %list_w%==%pid% (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)) ^
+else if %%a==UDP (set /a sortc[4]+=1 &set "sort[4][!sortc[4]!]=!output[%%0]:%localhost%=localhost!"))
+
+set "state_space=                              "
+if "%color_text%"=="1" (
+for /l %%0 in (0, 1, !slen!) do (if not !sortc[%%0]!==0 echo.
+if %%0==0 echo   !state_space!%ESC%[103;30m[LISTENING]%ESC%[0m &echo.
+if %%0==1 echo   !state_space!%ESC%[46;30m[HANDSHAKE]%ESC%[0m &echo.
+if %%0==2 echo   !state_space!%ESC%[47;30m[ESTABLISHED]%ESC%[0m &echo.
+if %%0==3 echo   !state_space!%ESC%[44;1m[ESTABLISHED]%ESC%[0m &echo.
+if %%0==4 echo   !state_space!%ESC%[102;30m[UDP]%ESC%[0m &echo.
+for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!)) ^
+else (
+for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo.
+if %%0==1 echo   !state_space![HANDSHAKE] &echo.
+if %%0==2 echo   !state_space![ESTABLISHED] &echo.
+if %%0==3 if !sortc[2]!==0 echo   !state_space![ESTABLISHED] &echo.
+if %%0==4 echo   !state_space![UDP] &echo.
+for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
+for /l %%0 in (1, 1, !count!) do set "output[!count!]=")
 
 set /a total[0][0]=!count! &for /l %%0 in (1, 1, !slen!) do set est[%%0][0]=!sortc[%%0]!
 if %bln%==1 (for /l %%a in (0, 1, 2) do (
 set /a est[%%a][2]=est[%%a][0] &set /a total[%%a][2]=total[%%a][0]) &set bln=0)
 
-for /l %%0 in (0, 1, 2) do (
-if !est[%%0][0]! gtr !est[%%0][1]! (set /a est[%%0][1]=est[%%0][0])
-if !est[%%0][0]! lss !est[%%0][2]! (set /a est[%%0][2]=est[%%0][0])
-if !total[%%0][0]! gtr !total[%%0][1]! (set /a total[%%0][1]=total[%%0][0])
-if !total[%%0][0]! lss !total[%%0][2]! (set /a total[%%0][2]=total[%%0][0]))
+for /l %%0 in (0, 1, 2) do for %%a in (est total listen) do ^
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
+
+set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
+set /a interval=8 &set Title_Instant_Print=false
+set /a data_len=3
+set "data[1]=LISTENING !listen[0][0]! !listen[1][0]!_(!listen[1][1]!|!listen[1][2]!) !listen[2][0]!_(!listen[2][1]!|!listen[2][2]!)"
+set "data[2]=ESTABLISHED !est[0][0]! !est[1][0]!_(!est[1][1]!|!est[1][2]!) !est[2][0]!_(!est[2][1]!|!est[2][2]!)"
+set "data[3]=Total %total[0][0]% %total[1][0]%_(%total[1][1]%|%total[1][2]%) %total[2][0]%_(%total[2][1]%|%total[2][2]%)"
+call :table
 
 title=Port Monitor - netstat Total:%total[0][0]% Est:%est[0][0]% ^(LH:%est[1][0]% FH:%est[2][0]%^)
+
 echo.
-echo Total:%total[0][0]%^(%total[0][1]%^|%total[0][2]%^) localhost:%total[1][0]%^(%total[1][1]%^|%total[1][2]%^) foreignhost:%total[2][0]%^(%total[2][1]%^|%total[2][2]%^)
-echo.
-echo ^[ESTABLISHED:%est[0][0]%^(%est[0][1]%^|%est[0][2]%^) localhost:%est[1][0]%^(%est[1][1]%^|%est[1][2]%^) foreignhost:%est[2][0]%^(%est[2][1]%^|%est[2][2]%^)^]
-timeout /t 3
+choice /n /c mfr /m "[M - Back to Menu] [R - Reload] [F - Set Filter]:"
+if %errorlevel%==1 goto init
+if %errorlevel%==2 (
+echo Set Filter:
+echo Proto:[TCP, UDP] State:[listen, est, hands] PID:[]
+set /p "filter=Set Filter:"
+
+
+)
 goto all
-echo.
-set /p enter=Press 'Enter' to reload or Enter 'b' to Back to main menu:
-if %enter%==b goto init
-set enter=nul &goto all
 
 REM /!\ #undone3
 :watchdog
