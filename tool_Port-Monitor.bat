@@ -6,7 +6,7 @@ call :setting &goto init
 set show_detail=1
 set color_text=1
 set quick_mode=0
-set enter_mode=img
+set enter_mode=pid
 exit /B
 
 :main
@@ -81,9 +81,9 @@ if defined bool set "var1=%%0" &set "var2=%%1" & ^
 set "varp=!port_list[%%1][0]!" &set "port_info=!port_list[%%1][1]!" & call :port_replace)
 set "output[%%0]=!output[%%0]:%localhost%=localhost!")
 
-if %%a==TCP (set /a cnt=0 &set "b=%%b" &set "c=%%c"
+if %%a==TCP (set /a cnt=0 &set "c=%%c"
 for %%l in (%localhost% %nullhost% [::]) do ^
-set /a cnt+=1 &set "l=%%l" &if "!c:~0,4!"=="!l:~0,4!" (
+set /a cnt+=1 &set "l=%%l" &if "!c:~0,4!"=="!l:~0,4!" (set /a cnt=0
 if %%d==LISTENING (set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
 set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!") ^
 else if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
@@ -91,7 +91,7 @@ set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!
 else if !cnt!==3 (if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
 set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
-else if %list_w%==%pid% (set /a listen[2][0]+=1) else (set "kill_port=!output[%%0]!" &goto kill))))
+else if %list_w%==%pid% (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &pause)))
 for /l %%0 in (1, 1, !count!) do set "output[!count!]="
 
 if "%color_text%"=="1" (
