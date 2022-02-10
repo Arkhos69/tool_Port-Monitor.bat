@@ -91,7 +91,7 @@ set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!
 else if !cnt!==3 (if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
 set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
-else if %list_w%==%pid% (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &pause)))
+else if %list_w%==%pid% (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)))
 for /l %%0 in (1, 1, !count!) do set "output[!count!]="
 
 if "%color_text%"=="1" (
