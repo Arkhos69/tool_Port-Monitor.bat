@@ -45,7 +45,7 @@ set "enter_mode=img" &set "enter=" &goto main
 :/pid
 set "enter_mode=pid" &set "enter=" &goto main
 :/all
-goto all
+color 07 &goto all
 :/wg
 goto watchdog
 
@@ -235,14 +235,14 @@ set "output[%%0]=!output[%%0]::%%i=:%%j!")
 if %%a==TCP if defined filter_TCP (set /a total[0][0]+=1 &set /a cnt=0 &set "c=%%c"
 for %%l in (%localhost% %nullhost% [::]) do set /a cnt+=1 &set "l=%%l" & ^
 if "!c:~0,4!"=="!l:~0,4!" (set /a total[1][0]+=1 &set /a cnt=0
-if %%d==LISTENING if defined filter_listen (set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
+if %%d==LISTENING (if defined filter_listen set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
 set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!") ^
-else if %%d==ESTABLISHED if defined filter_est (set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
+else if %%d==ESTABLISHED (if defined filter_est set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
 set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!")) ^
 else if !cnt!==3 (set /a total[2][0]+=1
-if %%d==ESTABLISHED if defined filter_est (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
+if %%d==ESTABLISHED (if defined filter_est set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
 set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
-else if %%d NEQ LISTENING if defined filter_handsh (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
+else if %%d NEQ LISTENING (if defined filter_handsh set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
 else if "%list_w%"=="%pid%" (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill))
 
 if %%a==UDP if defined filter_UDP (set /a total[0][0]+=1
