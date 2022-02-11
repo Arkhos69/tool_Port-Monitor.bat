@@ -26,6 +26,8 @@ Use Command: /all
 
 ![filter3](https://user-images.githubusercontent.com/98234168/153665129-8066cdab-7fee-4423-b7c7-c46c9ab7da6b.png)
 
+Press 'R' to reload port content still apply Filters.
+
 ### Before
 
 ![filter2](https://user-images.githubusercontent.com/98234168/153666078-541508ba-b60c-463c-b6aa-3e79f44a2740.png)
