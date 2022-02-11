@@ -20,15 +20,15 @@ Use Command: /all
 - In this command would diplay all ports.
 - You can also use Filter function to check whatever you want and easily.
 
-![filter1](https://user-images.githubusercontent.com/98234168/153663116-f901739a-bb85-400a-a2e0-21930655383c.png)
+![filter1](https://user-images.githubusercontent.com/98234168/153665175-17605726-cc41-4e2a-9143-86d52e8fda8b.png)
 
 ### After
 
-![filter2](https://user-images.githubusercontent.com/98234168/153660424-0baac4fa-404b-41e0-8432-30155f1941ab.png)
+![filter3](https://user-images.githubusercontent.com/98234168/153665129-8066cdab-7fee-4423-b7c7-c46c9ab7da6b.png)
 
 ### Before
 
-![filter5](https://user-images.githubusercontent.com/98234168/153663847-88c03590-8767-44d0-a655-5f22cf236884.png)
+![filter2](https://user-images.githubusercontent.com/98234168/153665148-5b6431de-8b47-4085-a920-1ef556d17ca1.png)
 
 # Single-Monitor
 
