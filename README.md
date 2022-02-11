@@ -28,7 +28,7 @@ Use Command: /all
 
 ### Before
 
-![filter2](https://user-images.githubusercontent.com/98234168/153665148-5b6431de-8b47-4085-a920-1ef556d17ca1.png)
+
 
 # Single-Monitor
 
