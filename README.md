@@ -26,7 +26,7 @@ Use Command: /all
 
 ![filter3](https://user-images.githubusercontent.com/98234168/153665129-8066cdab-7fee-4423-b7c7-c46c9ab7da6b.png)
 
-Press 'R' to reload port contents will still apply Filters.
+Press 'R' to reload port contents and still apply Filters.
 
 ### Before
 
