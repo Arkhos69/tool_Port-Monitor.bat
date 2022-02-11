@@ -22,7 +22,13 @@ Use Command: /all
 
 ![filter1](https://user-images.githubusercontent.com/98234168/153663116-f901739a-bb85-400a-a2e0-21930655383c.png)
 
+### After
+
 ![filter2](https://user-images.githubusercontent.com/98234168/153660424-0baac4fa-404b-41e0-8432-30155f1941ab.png)
+
+### Before
+
+![filter5](https://user-images.githubusercontent.com/98234168/153663847-88c03590-8767-44d0-a655-5f22cf236884.png)
 
 # Single-Monitor
 
