@@ -9,7 +9,7 @@ This tool can do:
 - Count Ports and Show Dynamic stat table
 - Check "LISTENING" Port is connect to Foreign Host
 - Can be more clearly to check port.
-- Port Filter
+- Port type Filter
 
 # Multiple-Monitor
 
