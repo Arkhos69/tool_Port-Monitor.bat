@@ -9,6 +9,22 @@ This tool can do:
 - Count Ports and Show Dynamic stat table
 - Check "LISTENING" Port is connect to Foreign Host
 - Can be more clearly to check port.
+- Port Filter
+
+# Multiple-Monitor
+
+If you wnat to Monitor multiple port in same time you can try this.
+
+Use Command: /all
+
+- In this command would diplay all ports.
+- You can also use Filter function to check whatever you want easily.
+
+![filter1](https://user-images.githubusercontent.com/98234168/153660636-2463e23c-64b5-41f7-9fb0-76f9bdbbb266.png)
+
+![filter2](https://user-images.githubusercontent.com/98234168/153660424-0baac4fa-404b-41e0-8432-30155f1941ab.png)
+
+# Single-Monitor
 
 ![port_monitor5](https://user-images.githubusercontent.com/98234168/153008347-67431584-2d06-403c-aa90-8d4f14934075.png)
 
