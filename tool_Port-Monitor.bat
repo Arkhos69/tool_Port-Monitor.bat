@@ -290,17 +290,18 @@ choice /n /c mfr /m "[M - Back to Menu] [R - Reload] [F - Set Filter]:"
 if %errorlevel%==1 goto init
 if %errorlevel%==2 (
 echo.
-echo ==================================================================================
+echo ===================================================================================
 echo Set Filter:
 echo /p [TCP, UDP] - Set Proto
 echo /s [listen, est, handsh] - Set State
 echo /pid ["pid"] - Choose PID
 echo /cls - Clear Filter
-echo ----------------------------------------------------------------------------------
-echo Prefix the command with '+' or '-' to specify whether the type should be displayed
+echo -----------------------------------------------------------------------------------
+echo Prefix the command with '+' or '-' to specify whether the type should be displayed.
+echo e.g. /s -listen
+echo e.g. /p -UDP /pid 123
 echo e.g. /p -UDP /s -listen -handsh
-echo e.g. /p -UDP /s -listen +handsh +est /pid 123
-echo ==================================================================================
+echo ===================================================================================
 echo. &set /p "filter=Set Filter:"
 
 set "sub_cmd[1]=TCP UDP" &set "sub_cmd[2]=listen est handsh"
