@@ -18,7 +18,7 @@ If you wnat to Monitor multiple port in same time you can try this.
 Use Command: /all
 
 - In this command would diplay all ports.
-- You can also use Filter function to check whatever you want easily.
+- You can also use Filter function to check whatever you want and easily.
 
 ![filter1](https://user-images.githubusercontent.com/98234168/153663116-f901739a-bb85-400a-a2e0-21930655383c.png)
 
