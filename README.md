@@ -11,7 +11,7 @@ This tool can do:
 - Can be more clearly to check port.
 - Port type Filter
 
-# Multiple-Monitor
+## Multiple-Monitor
 
 If you wnat to Monitor multiple port in same time you can try this.
 
@@ -30,7 +30,7 @@ Use Command: /all
 
 ![filter2](https://user-images.githubusercontent.com/98234168/153666078-541508ba-b60c-463c-b6aa-3e79f44a2740.png)
 
-# Single-Monitor
+## Single-Monitor
 
 ![port_monitor5](https://user-images.githubusercontent.com/98234168/153008347-67431584-2d06-403c-aa90-8d4f14934075.png)
 
