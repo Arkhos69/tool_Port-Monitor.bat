@@ -20,7 +20,7 @@ Use Command: /all
 - In this command would diplay all ports.
 - You can also use Filter function to check whatever you want easily.
 
-![filter1](https://user-images.githubusercontent.com/98234168/153660636-2463e23c-64b5-41f7-9fb0-76f9bdbbb266.png)
+![filter1](https://user-images.githubusercontent.com/98234168/153663116-f901739a-bb85-400a-a2e0-21930655383c.png)
 
 ![filter2](https://user-images.githubusercontent.com/98234168/153660424-0baac4fa-404b-41e0-8432-30155f1941ab.png)
 
