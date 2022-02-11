@@ -232,17 +232,20 @@ if %%p==!port_list[%%1][0]! (set "bool=1") else (if %%q==!port_list[%%1][0]! set
 if defined bool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][1]!) do ^
 set "output[%%0]=!output[%%0]::%%i=:%%j!")
 
-if %%a==TCP if defined filter_TCP (set /a total[0][0]+=1 &set /a cnt=0 &set "c=%%c"
+if %%a==TCP if defined filter_TCP (set /a cnt=0 &set "c=%%c"
 for %%l in (%localhost% %nullhost% [::]) do set /a cnt+=1 &set "l=%%l" & ^
-if "!c:~0,4!"=="!l:~0,4!" (set /a total[1][0]+=1 &set /a cnt=0
-if %%d==LISTENING (if defined filter_listen set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
+if "!c:~0,4!"=="!l:~0,4!" (set /a cnt=0
+if %%d==LISTENING (if defined filter_listen set /a total[0][0]+=1 &set /a total[1][0]+=1 & ^
+set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
 set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!") ^
-else if %%d==ESTABLISHED (if defined filter_est set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
+else if %%d==ESTABLISHED (
+if defined filter_est set /a total[0][0]+=1 &set /a total[1][0]+=1 &set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
 set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!")) ^
-else if !cnt!==3 (set /a total[2][0]+=1
-if %%d==ESTABLISHED (if defined filter_est set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
-set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
-else if %%d NEQ LISTENING (if defined filter_handsh set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
+else if !cnt!==3 (
+if %%d==ESTABLISHED (if defined filter_est set /a total[0][0]+=1 &set /a total[2][0]+=1 & ^
+set /a est[0][0]+=1 &set /a est[2][0]+=1 &set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
+else if %%d NEQ LISTENING (if defined filter_handsh set /a total[0][0]+=1 &set /a total[2][0]+=1 & ^
+set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
 else if "%list_w%"=="%pid%" (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill))
 
 if %%a==UDP if defined filter_UDP (set /a total[0][0]+=1
@@ -289,10 +292,10 @@ if %errorlevel%==2 (
 echo.
 echo ==================================================================================
 echo Set Filter:
-echo Proto: /p [TCP, UDP]
-echo State: /s [listen, est, handsh]
-echo Choose PID: /pid PID:[]
-echo /cls :Clear Filter
+echo /p [TCP, UDP] - Set Proto
+echo /s [listen, est, handsh] - Set State
+echo /pid ["pid"] - Choose PID
+echo /cls - Clear Filter
 echo ----------------------------------------------------------------------------------
 echo Prefix the command with '+' or '-' to specify whether the type should be displayed
 echo e.g. /p -UDP /s -listen -handsh
