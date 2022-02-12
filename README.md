@@ -13,9 +13,7 @@ This tool can do:
 
 ## Multiple-Monitor
 
-If you wnat to Monitor multiple port in same time you can try this.
-
-Use Command: /all
+If you wnat to Monitor multiple port in same time you can use Command: /all
 
 - In this command would diplay all ports.
 - You can also use Filter function to check whatever you want and easily.
