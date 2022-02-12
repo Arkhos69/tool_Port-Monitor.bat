@@ -38,7 +38,7 @@ Press 'R' to reload port contents and still apply Filters.
 
 ![port_monitor9](https://user-images.githubusercontent.com/98234168/153104892-17529eb1-7ab1-4f0b-a837-be45e942f2ce.png)
 
-Reload port contents per 3 seconds, or Press C.
+Reload port contents per 1 seconds, or Press C.
 
 Press N can open a new cmd window to Monitor another process.
 
