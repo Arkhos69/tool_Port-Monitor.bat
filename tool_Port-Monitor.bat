@@ -292,36 +292,34 @@ if %errorlevel%==2 (
 echo.
 echo ===================================================================================
 echo Set Filter:
-echo /p [TCP, UDP] - Set Proto
-echo /s [listen, est, handsh] - Set State
-echo /pid ["pid"] - Choose PID
-echo /cls - Clear Filter
+echo Proto: [TCP, UDP]
+echo State: [listen, est, handsh]
+echo Choose PID: /pid ["pid"]
+echo Clear Filter: /cls
 echo -----------------------------------------------------------------------------------
 echo Prefix the command with '+' or '-' to specify whether the type should be displayed.
-echo e.g. /s -listen
-echo e.g. /p -UDP /pid 123
-echo e.g. /p -UDP /s -listen -handsh
+echo e.g. -UDP
+echo e.g. -UDP -listen -est
+echo e.g. -UDP -listen /pid 123
 echo ===================================================================================
 echo. &set /p "filter=Set Filter:"
 
-set "sub_cmd[1]=TCP UDP" &set "sub_cmd[2]=listen est handsh"
-if defined filter (set /a cmd_i=0 &set "get="
-for %%a in (!filter!) do (set "tmp=%%a"
-if "!tmp:~0,1!"=="/" set "get=" &set /a cmd_i=0
-if "!tmp:~0,1!"=="/" for %%b in (p s pid cls) do ^
-if not defined get (set /a cmd_i+=1) &if "!tmp:~1!"=="%%b" set "get=1"
+set "filter_cmd=TCP UDP listen est handsh" &set "next=" &set "get="
+if defined filter (for %%a in (!filter!) do (set "tmp=%%a" &set "tmp_=!tmp:~0,1!"
+
+if defined next (
+if "!next!"=="pid" tasklist /fi "pid eq !tmp!" | findstr !tmp! 2>&1>nul & ^
+if !errorlevel!==0 (set "pid=!tmp!" &set "filter_PID=1") else echo Cannot find Process. &pause
+set "next=")
+
+if "!tmp_!"=="/" (if !tmp:~1!==pid (set "next=pid") else set "get=!tmp:~1!") else (for %%b in (!filter_cmd!) do ^
+if "!tmp:~1!"=="%%b" (if "!tmp_!"=="+" (set "filter_%%b=1") else if "!tmp_!"=="-" set "filter_%%b="))
 
 if defined get (
-if "!tmp!"=="/cls" (
-set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1"
-set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID=")
+if "!get!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
+set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
+set "get="))))
 
-if !cmd_i!==3 (if not !tmp!==/pid (tasklist /fi "pid eq !tmp!" | findstr !tmp! 2>&1>nul
-if !errorlevel!==0 (set "pid=!tmp!" &set "filter_PID=1") else echo Cannot find Process. &pause)) ^
-else (for /l %%0 in (!cmd_i!, 1, !cmd_i!) do for %%i in (!sub_cmd[%%0]!) do ^
-if "!tmp:~1!"=="%%i" (if "!tmp:~0,1!"=="+" (set "filter_%%i=1") ^
-else if "!tmp:~0,1!"=="-" set "filter_%%i=")))
-)))
 if defined filter_PID tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 goto all
 
