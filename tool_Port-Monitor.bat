@@ -299,7 +299,7 @@ echo Clear Filter: /cls
 echo -----------------------------------------------------------------------------------
 echo Prefix the command with '+' or '-' to specify whether the type should be displayed.
 echo e.g. -UDP
-echo e.g. -UDP -listen -est
+echo e.g. +TCP -listen +est
 echo e.g. -UDP -listen /pid 123
 echo ===================================================================================
 echo. &set /p "filter=Set Filter:"
