@@ -197,8 +197,7 @@ for /l %%0 in (1, 1, !count!) do for /f "tokens=4" %%a in ("!output[%%0]!") do (
 if %%a==LISTENING (set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]!") ^
 else if %%a==ESTABLISHED (set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]!") ^
 else (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!"))
-cls
-echo [Quick mode] Image Name: %imgname% ^| PID: %pid% &echo.
+cls &echo [Quick mode] Image Name: %imgname% ^| PID: %pid% &echo.
 echo   Proto  Local Address          Foreign Address        State           PID
 set "state_space=                              "
 for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (
@@ -207,11 +206,16 @@ if %%0==1 echo   !state_space![HANDSHAKE] &echo.
 if %%0==2 echo   !state_space![ESTABLISHED] &echo.
 for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
 echo.
-choice /n /c pmnxc /t 1 /d c /m "P - Pause | M - Back to menu:"
+if "%without_delay%"=="1" (
+echo [Without-Delay Mode]
+for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a") ^
+else (
+choice /n /c pmndxc /t %delay% /d c /m "[P - Pause] [M - Back to Menu]:"
 if %errorlevel%==1 pause
 if %errorlevel%==2 goto init
 if %errorlevel%==3 start %~f0
-if %errorlevel%==4 exit
+if %errorlevel%==4 set /a delay=0
+if %errorlevel%==5 exit)
 goto quick_loop
 
 :all
