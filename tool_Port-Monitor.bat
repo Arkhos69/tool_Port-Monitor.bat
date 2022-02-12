@@ -73,8 +73,11 @@ if "%quick_mode%"=="1" (color 0a &goto quick_loop) else (goto loop)
 :loop
 set /a count=0 &set /a slen=3 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]=0
 for /l %%0 in (0, 1, 2) do set /a total[%%0][0]=0 &set /a est[%%0][0]=0 &set /a listen[%%0][0]=0
-for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do (
-for /f "tokens=5" %%b in ("%%a") do if %%b==%pid% set/a count+=1 &set output[!count!]=%%a)
+
+for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do for /f "tokens=1" %%p in ("%%a") do ^
+if %%p==TCP (for /f "tokens=5" %%t in ("%%a") do if %%t==%pid% set/a count+=1 &set output[!count!]=%%a) ^
+else if %%p==UDP for /f "tokens=4" %%u in ("%%a") do if %%u==%pid% set/a count+=1 &set output[!count!]=%%a
+
 if !count!==0 (echo. &echo ^(Empty^)) else (
 for /l %%0 in (1, 1, !count!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
 
@@ -229,8 +232,10 @@ set /a count=0 &set /a slen=4 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]
 for /l %%0 in (0, 1, 2) do ^
 set /a total[%%0][0]=0 &set /a est[%%0][0]=0 &set /a listen[%%0][0]=0
 
-if defined filter_PID (for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do ^
-for /f "tokens=5" %%b in ("%%a") do if %%b==%pid% set/a count+=1 &set output[!count!]=%%a) ^
+if defined filter_PID (
+for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do for /f "tokens=1" %%p in ("%%a") do ^
+if %%p==TCP (for /f "tokens=5" %%t in ("%%a") do if %%t==%pid% set/a count+=1 &set output[!count!]=%%a) ^
+else if %%p==UDP for /f "tokens=4" %%u in ("%%a") do if %%u==%pid% set/a count+=1 &set output[!count!]=%%a) ^
 else for /f "tokens=*" %%a in ('netstat -ano') do set /a count+=1 &set output[!count!]=%%a
 
 if !count!==0 (echo. &echo ^(Empty^)) else (
@@ -304,7 +309,7 @@ echo ===========================================================================
 echo Set Filter:
 echo Proto: [TCP, UDP]
 echo State: [listen, est, handsh]
-echo Choose PID: /pid ["pid"]
+echo Choose PID: /pid ["pid"] Clear: -PID
 echo Clear Filter: /cls
 echo -----------------------------------------------------------------------------------
 echo Prefix the command with '+' or '-' to specify whether the type should be displayed.
@@ -314,7 +319,7 @@ echo e.g. -TCP +UDP /pid 123
 echo ===================================================================================
 echo. &set /p "filter=Set Filter:"
 
-set "filter_cmd=TCP UDP listen est handsh" &set "next=" &set "get="
+set "filter_cmd=TCP UDP listen est handsh PID" &set "next=" &set "get="
 if defined filter (for %%a in (!filter!) do (set "tmp=%%a" &set "tmp_=!tmp:~0,1!"
 
 if defined next (
