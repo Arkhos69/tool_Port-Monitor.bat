@@ -313,7 +313,8 @@ if !errorlevel!==0 (set "pid=!tmp!" &set "filter_PID=1") else echo Cannot find P
 set "next=")
 
 if "!tmp_!"=="/" (if !tmp:~1!==pid (set "next=pid") else set "get=!tmp:~1!") else (for %%b in (!filter_cmd!) do ^
-if "!tmp:~1!"=="%%b" (if "!tmp_!"=="+" (set "filter_%%b=1") else if "!tmp_!"=="-" set "filter_%%b="))
+if "!tmp:~1!"=="%%b" (if "!tmp_!"=="+" (set "filter_%%b=1") else if "!tmp_!"=="-" (set "filter_%%b=") ^
+else if "!tmp_!"=="$" set "filter_%%b=1" &for %%i in (!filter_cmd!) do if not %%i==%%b set "filter_%%i="))
 
 if defined get (
 if "!get!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
