@@ -8,8 +8,7 @@ This tool can do:
 - Show Port info (ex. :443=https, localhost)
 - Count Ports and Show Dynamic stat table
 - Check "LISTENING" Port is connect to Foreign Host
-- Can be more clearly to check port.
-- Port type Filter
+- Can be more clearly and Easily to check port.
 
 ## Multiple-Monitor
 
