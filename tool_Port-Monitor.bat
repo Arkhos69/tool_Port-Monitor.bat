@@ -6,7 +6,7 @@ call :setting &goto init_first
 set show_detail=1
 set color_text=1
 set quick_mode=0
-set without_delay=1
+set without_delay=0
 set enter_mode=img
 exit /B
 
@@ -67,8 +67,7 @@ title=Port Monitor - %imgname%
 for /f "tokens=1" %%a in ('tasklist /fi "pid eq %pid%" ^| findstr %pid%') do set imgname=%%a
 for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a"
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
-set "enter=" &if %without_delay%==1 (set "choice_str=[Without-Delay Mode]" &set /a delay=0) ^
-else set "choice_str=[P - Pause] [M - Back to Menu]:" &set /a delay=1
+set "enter=" &if %without_delay%==1 (set /a delay=0) else set /a delay=1
 if "%quick_mode%"=="1" (color 0a &goto quick_loop) else (goto loop)
 
 :loop
@@ -134,13 +133,16 @@ call :table
 
 title=Port Monitor - %imgname%(%pid%) Total:%total[0][0]% [Est:%est[0][0]% (LH:%est[1][0]% FH:%est[2][0]%)]
 echo.
-choice /n /c pmndxc /t %delay% /d c /m "%choice_str%"
+if "%without_delay%"=="1" (
+echo [Without-Delay Mode]
+for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a") ^
+else (
+choice /n /c pmndxc /t %delay% /d c /m "[P - Pause] [M - Back to Menu]:"
 if %errorlevel%==1 pause
 if %errorlevel%==2 goto init
 if %errorlevel%==3 start %~f0
-if %errorlevel%==4 set "without_delay=1" &set /a delay=0
-if %errorlevel%==5 exit
-for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a"
+if %errorlevel%==4 set /a delay=0
+if %errorlevel%==5 exit)
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 goto loop
 
