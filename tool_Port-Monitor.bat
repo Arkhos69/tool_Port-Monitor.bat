@@ -6,7 +6,7 @@ call :setting &goto init_first
 set show_detail=1
 set color_text=1
 set quick_mode=0
-set without_delay=0
+set without_delay=1
 set enter_mode=img
 exit /B
 
@@ -100,6 +100,11 @@ set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
 else if "%list_w%"=="%pid%" (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)))
 
+if %bln%==1 (for /l %%a in (0, 1, 2) do (set /a est[%%a][2]=est[%%a][0] &set /a total[%%a][2]=total[%%a][0]) &set bln=0)
+for /l %%0 in (0, 1, 2) do for %%a in (listen est total) do ^
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
+
 cls &echo.
 echo Image Name                     PID Session Name        Session#    Mem Usage
 echo ========================= ======== ================ =========== ============
@@ -120,11 +125,6 @@ if %%0==2 echo   !state_space![ESTABLISHED] &echo.
 if %%0==3 if !sortc[2]!==0 echo   !state_space![ESTABLISHED] &echo.
 for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
 for /l %%0 in (1, 1, !count!) do set "output[!count!]=")
-
-if %bln%==1 (for /l %%a in (0, 1, 2) do (set /a est[%%a][2]=est[%%a][0] &set /a total[%%a][2]=total[%%a][0]) &set bln=0)
-for /l %%0 in (0, 1, 2) do for %%a in (listen est total) do ^
-if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
-else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
 
 set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
 set /a interval=8 &set Title_Instant_Print=false
