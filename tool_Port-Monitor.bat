@@ -140,8 +140,8 @@ if %errorlevel%==2 goto init
 if %errorlevel%==3 start %~f0
 if %errorlevel%==4 set "without_delay=1" &set /a delay=0
 if %errorlevel%==5 exit
-tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a"
+tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 goto loop
 
 :table
