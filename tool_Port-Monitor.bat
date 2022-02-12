@@ -6,6 +6,7 @@ call :setting &goto init_first
 set show_detail=1
 set color_text=1
 set quick_mode=0
+set without_delay=1
 set enter_mode=img
 exit /B
 
@@ -62,22 +63,18 @@ set "enter=" &goto main
 :start
 cls &color 07
 echo loading......
-for /f "tokens=1" %%a in ('tasklist /fi "pid eq %pid%" ^| findstr %pid%') do set imgname=%%a
 title=Port Monitor - %imgname%
+for /f "tokens=1" %%a in ('tasklist /fi "pid eq %pid%" ^| findstr %pid%') do set imgname=%%a
+for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a"
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
-set "enter="
+set "enter=" &if %without_delay%==1 (set /a reload=0) else set /a reload=1
 if "%quick_mode%"=="1" (color 0a &goto quick_loop) else (goto loop)
 
 :loop
-cls
-tasklist /fi "pid eq %pid%"
-echo.
-netstat -ano | findstr /i "PID"
 set /a count=0 &set /a slen=3 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]=0
 for /l %%0 in (0, 1, 2) do set /a total[%%0][0]=0 &set /a est[%%0][0]=0 &set /a listen[%%0][0]=0
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do (
 for /f "tokens=5" %%b in ("%%a") do if %%b==%pid% set/a count+=1 &set output[!count!]=%%a)
-
 if !count!==0 (echo. &echo ^(Empty^)) else (
 for /l %%0 in (1, 1, !count!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
 
@@ -100,6 +97,12 @@ set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
 else if "%list_w%"=="%pid%" (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)))
 
+cls &echo.
+echo Image Name                     PID Session Name        Session#    Mem Usage
+echo ========================= ======== ================ =========== ============
+echo %tasklist_cont%
+echo. &echo   %netstat_title_%
+
 if "%color_text%"=="1" (
 for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo.
 for /l %%1 in (1, 1, !sortc[%%0]!) do (
@@ -116,7 +119,6 @@ for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
 for /l %%0 in (1, 1, !count!) do set "output[!count!]=")
 
 if %bln%==1 (for /l %%a in (0, 1, 2) do (set /a est[%%a][2]=est[%%a][0] &set /a total[%%a][2]=total[%%a][0]) &set bln=0)
-
 for /l %%0 in (0, 1, 2) do for %%a in (listen est total) do ^
 if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
 else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
@@ -130,14 +132,15 @@ set "data[3]=Total %total[0][0]% %total[1][0]%_(%total[1][1]%|%total[1][2]%) %to
 call :table
 
 title=Port Monitor - %imgname%(%pid%) Total:%total[0][0]% [Est:%est[0][0]% (LH:%est[1][0]% FH:%est[2][0]%)]
-
 echo.
-choice /n /c pmnxc /t 3 /d c /m "[P - Pause] [M - Back to Menu]:"
+choice /n /c pmnuxc /t %reload% /d c /m "[P - Pause] [M - Back to Menu]:"
 if %errorlevel%==1 pause
 if %errorlevel%==2 goto init
 if %errorlevel%==3 start %~f0
-if %errorlevel%==4 exit
+if %errorlevel%==4 set /a reload=0
+if %errorlevel%==5 exit
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
+for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a"
 goto loop
 
 :table
@@ -183,9 +186,6 @@ set "title_print="
 exit /b
 
 :quick_loop
-cls
-echo [Quick mode] Image Name: %imgname% ^| PID: %pid% &echo.
-echo   Proto  Local Address          Foreign Address        State           PID
 set /a count=0 &set /a slen=2 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]=0
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do (
 for /f "tokens=5" %%b in ("%%a") do if %%b==%pid% set/a count+=1 &set output[!count!]=%%a)
@@ -194,6 +194,9 @@ for /l %%0 in (1, 1, !count!) do for /f "tokens=4" %%a in ("!output[%%0]!") do (
 if %%a==LISTENING (set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]!") ^
 else if %%a==ESTABLISHED (set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]!") ^
 else (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!"))
+cls
+echo [Quick mode] Image Name: %imgname% ^| PID: %pid% &echo.
+echo   Proto  Local Address          Foreign Address        State           PID
 set "state_space=                              "
 for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (
 echo.
@@ -428,14 +431,14 @@ for /l %%0 in (0, 1, 2) do for /l %%1 in (0, 1, 2) do (
 set /a total[%%0][%%1]=0 &set /a est[%%0][%%1]=0
 set /a listen[%%0][%%1]=0 &set /a hand[%%0][%%1]=0 &set /a estc[%%0][%%1]=0)
 set /a init_cnt=0
-for %%a in (1 1 0 img) do set /a init_cnt+=1 &set "default[!init_cnt!]=%%a"
-for /l %%0 in (1, 1, 4) do echo !default[%%0]!
+for %%a in (1 1 0 img 1) do set /a init_cnt+=1 &set "default[!init_cnt!]=%%a"
 set /a init_cnt=0
-for %%a in (show_detail color_text quick_mode enter_mode) do ^
+for %%a in (show_detail color_text quick_mode enter_mode without_delay) do ^
 set /a init_cnt+=1 &if not defined %%a for %%i in (!init_cnt!) do set "%%a=!default[%%i]!"
 set "state_space=                              "
 set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1"
 set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
+for /f "tokens=*" %%a in ('netstat -ano ^| findstr /i "PID"') do set "netstat_title_=%%a"
 goto main
 
 REM Cool Stuff win10colors.cmd by Michele Locati (github/mlocati). Respect!!!
