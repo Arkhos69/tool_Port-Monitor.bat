@@ -71,7 +71,7 @@ set "enter=" &if %without_delay%==1 (set /a delay=0) else set /a delay=1
 if "%quick_mode%"=="1" (color 0a &goto quick_loop) else (goto loop)
 
 :loop
-set /a count=0 &set /a slen=3 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]=0
+set /a count=0 &set /a slen=4 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]=0
 for /l %%0 in (0, 1, 2) do set /a total[%%0][0]=0 &set /a est[%%0][0]=0 &set /a listen[%%0][0]=0
 
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do for /f "tokens=1" %%p in ("%%a") do ^
@@ -98,12 +98,21 @@ else if !cnt!==3 (set /a total[2][0]+=1
 if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
 set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
-else if "%list_w%"=="%pid%" (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)))
+else if "%list_w%"=="%pid%" (set /a listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)) ^
+else if %%a==UDP set /a total[0][0]+=1 &set /a sortc[4]+=1 &set "sort[4][!sortc[4]!]=!output[%%0]!")
 
 if %bln%==1 (for /l %%a in (0, 1, 2) do (set /a est[%%a][2]=est[%%a][0] &set /a total[%%a][2]=total[%%a][0]) &set bln=0)
 for /l %%0 in (0, 1, 2) do for %%a in (listen est total) do ^
 if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
 else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
+
+set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
+set /a interval=8 &set Title_Instant_Print=false
+set /a data_len=3
+set "data[1]=LISTENING !listen[0][0]! !listen[1][0]!_(!listen[1][1]!|!listen[1][2]!) !listen[2][0]!_(!listen[2][1]!|!listen[2][2]!)"
+set "data[2]=ESTABLISHED !est[0][0]! !est[1][0]!_(!est[1][1]!|!est[1][2]!) !est[2][0]!_(!est[2][1]!|!est[2][2]!)"
+set "data[3]=Total %total[0][0]% %total[1][0]%_(%total[1][1]%|%total[1][2]%) %total[2][0]%_(%total[2][1]%|%total[2][2]%)"
+call :table
 
 cls &echo.
 echo Image Name                     PID Session Name        Session#    Mem Usage
@@ -117,22 +126,21 @@ for /l %%1 in (1, 1, !sortc[%%0]!) do (
 if %%0==0 echo   %ESC%[103;30m!sort[%%0][%%1]!%ESC%[0m
 if %%0==1 echo   %ESC%[46;30m!sort[%%0][%%1]!%ESC%[0m
 if %%0==2 echo   %ESC%[47;30m!sort[%%0][%%1]!%ESC%[0m
-if %%0==3 echo   %ESC%[44;1m!sort[%%0][%%1]!%ESC%[0m))) ^
-else (set "state_space=                              "
+if %%0==3 echo   %ESC%[44;1m!sort[%%0][%%1]!%ESC%[0m
+if %%0==4 echo   !sort[%%0][%%1]!))) ^
+else (
 for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo.
-if %%0==1 echo   !state_space![HANDSHAKE] &echo.
-if %%0==2 echo   !state_space![ESTABLISHED] &echo.
-if %%0==3 if !sortc[2]!==0 echo   !state_space![ESTABLISHED] &echo.
+if %%0==1 echo   %state_space%[HANDSHAKE] &echo.
+if %%0==2 echo   %state_space%[ESTABLISHED] &echo.
+if %%0==3 if !sortc[2]!==0 echo   %state_space%[ESTABLISHED] &echo.
+if %%0==4 echo   %state_space%[UDP] &echo.
 for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
 for /l %%0 in (1, 1, !count!) do set "output[!count!]=")
 
-set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
-set /a interval=8 &set Title_Instant_Print=false
-set /a data_len=3
-set "data[1]=LISTENING !listen[0][0]! !listen[1][0]!_(!listen[1][1]!|!listen[1][2]!) !listen[2][0]!_(!listen[2][1]!|!listen[2][2]!)"
-set "data[2]=ESTABLISHED !est[0][0]! !est[1][0]!_(!est[1][1]!|!est[1][2]!) !est[2][0]!_(!est[2][1]!|!est[2][2]!)"
-set "data[3]=Total %total[0][0]% %total[1][0]%_(%total[1][1]%|%total[1][2]%) %total[2][0]%_(%total[2][1]%|%total[2][2]%)"
-call :table
+if not !Title_Instant_Print!==true (
+echo. &echo   !title_print:_= ! &echo.
+for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
+set "title_print="
 
 title=Port Monitor - %imgname%(%pid%) Total:%total[0][0]% [Est:%est[0][0]% (LH:%est[1][0]% FH:%est[2][0]%)]
 echo.
@@ -184,11 +192,6 @@ set /a space_[%%0]=0 &set "data_[%%0]=")
 
 if !Title_Instant_Print!==true echo !table[%%t]!
 ) else (set data[%%T]=NULL))
-
-if not !Title_Instant_Print!==true (
-echo. &echo   !title_print:_= ! &echo.
-for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
-set "title_print="
 exit /b
 
 :quick_loop
@@ -202,7 +205,6 @@ else if %%a==ESTABLISHED (set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%
 else (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!"))
 cls &echo [Quick mode] Image Name: %imgname% ^| PID: %pid% &echo.
 echo   Proto  Local Address          Foreign Address        State           PID
-set "state_space=                              "
 for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (
 echo.
 if %%0==1 echo   !state_space![HANDSHAKE] &echo.
@@ -297,6 +299,11 @@ set "data[1]=LISTENING !listen[0][0]! !listen[1][0]!_(!listen[1][1]!|!listen[1][
 set "data[2]=ESTABLISHED !est[0][0]! !est[1][0]!_(!est[1][1]!|!est[1][2]!) !est[2][0]!_(!est[2][1]!|!est[2][2]!)"
 set "data[3]=Total %total[0][0]% %total[1][0]%_(%total[1][1]%|%total[1][2]%) %total[2][0]%_(%total[2][1]%|%total[2][2]%)"
 call :table
+
+if not !Title_Instant_Print!==true (
+echo. &echo   !title_print:_= ! &echo.
+for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
+set "title_print="
 
 title=Port Monitor - netstat Total:%total[0][0]% Est:%est[0][0]% ^(LH:%est[1][0]% FH:%est[2][0]%^)
 
