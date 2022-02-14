@@ -297,9 +297,17 @@ set "title_print="
 title=Port Monitor - netstat Total:%total[0][0]% Est:%est[0][0]% ^(LH:%est[1][0]% FH:%est[2][0]%^)
 
 echo.
-choice /n /c mfnr /m "[M - Back to Menu] [R - Reload] [F - Set Filter]:"
-if %errorlevel%==1 goto init
-if %errorlevel%==2 (
+choice /n /c hmfnr /m "[H - Help] [M - Back to Menu] [R - Reload] [F - Set Filter]:"
+if %errorlevel%==1 (
+echo.
+echo [H - Help]
+echo [M - Back to Menu]
+echo [R - Reload]
+echo [F - Set Filter]
+echo [N - Open a new cmd window with Single Monitor mode]
+pause)
+if %errorlevel%==2 goto init
+if %errorlevel%==3 (
 echo.
 echo ===================================================================================
 echo Set Filter:
@@ -330,7 +338,7 @@ if defined get (
 if "!get!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
 set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
 set "get="))))
-if %errorlevel%==3 echo. &set /p "new_pid=Please enter The PID:" &call :pid_check !new_pid! & ^
+if %errorlevel%==4 echo. &set /p "new_pid=Please enter The PID:" &call :pid_check !new_pid! & ^
 if !errorlevel!==0 set "pass=start" &start %~f0
 
 set "new_pid="
