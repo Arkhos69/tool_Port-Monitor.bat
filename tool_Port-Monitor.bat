@@ -51,13 +51,10 @@ color 07 &goto all
 goto watchdog
 
 :check
-if defined enter (
-if %enter_mode%==img (
+if defined enter (if "%enter_mode%"=="img" (
 for /f "tokens=2" %%a in ('tasklist /fi "imagename eq %enter%" ^| findstr /b /i %enter%') do set pid=%%a &goto start
 for /f "tokens=2" %%a in ('tasklist /fi "imagename eq %enter%.exe" ^| findstr /b /i %enter%.exe') do set pid=%%a &goto start
-) else if %enter_mode%==pid (
-tasklist /fi "pid eq %enter%" | findstr %enter% 2>&1>nul
-if !errorlevel!==0 set pid=%enter% &goto start))
+echo Cannot find Process. &pause) else if "%enter_mode%"=="pid" (call :pid_check %enter% &if !errorlevel!==0 goto start))
 set "enter=" &goto main
 
 :start
@@ -128,8 +125,7 @@ if %%0==1 echo   %ESC%[46;30m!sort[%%0][%%1]!%ESC%[0m
 if %%0==2 echo   %ESC%[47;30m!sort[%%0][%%1]!%ESC%[0m
 if %%0==3 echo   %ESC%[44;1m!sort[%%0][%%1]!%ESC%[0m
 if %%0==4 echo   !sort[%%0][%%1]!))) ^
-else (
-for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo.
+else (for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo.
 if %%0==1 echo   %state_space%[HANDSHAKE] &echo.
 if %%0==2 echo   %state_space%[ESTABLISHED] &echo.
 if %%0==3 if !sortc[2]!==0 echo   %state_space%[ESTABLISHED] &echo.
@@ -137,18 +133,15 @@ if %%0==4 echo   %state_space%[UDP] &echo.
 for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
 for /l %%0 in (1, 1, !count!) do set "output[!count!]=")
 
-if not !Title_Instant_Print!==true (
-echo. &echo   !title_print:_= ! &echo.
+if not !Title_Instant_Print!==true (echo. &echo   !title_print:_= ! &echo.
 for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
 set "title_print="
 
 title=Port Monitor - %imgname%(%pid%) Total:%total[0][0]% [Est:%est[0][0]% (LH:%est[1][0]% FH:%est[2][0]%)]
-echo.
-if "%without_delay%"=="1" (
-echo [Without-Delay Mode]
+
+echo. &if "%without_delay%"=="1" (echo [Without-Delay Mode]
 for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a") ^
-else (
-choice /n /c pmndxc /t %delay% /d c /m "[P - Pause] [M - Back to Menu]:"
+else (choice /n /c pmndxc /t %delay% /d c /m "[P - Pause] [M - Back to Menu]:"
 if %errorlevel%==1 pause
 if %errorlevel%==2 goto init
 if %errorlevel%==3 start %~f0
@@ -211,11 +204,9 @@ if %%0==1 echo   !state_space![HANDSHAKE] &echo.
 if %%0==2 echo   !state_space![ESTABLISHED] &echo.
 for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!))
 echo.
-if "%without_delay%"=="1" (
-echo [Without-Delay Mode]
+if "%without_delay%"=="1" (echo [Without-Delay Mode]
 for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a") ^
-else (
-choice /n /c pmndxc /t %delay% /d c /m "[P - Pause] [M - Back to Menu]:"
+else (choice /n /c pmndxc /t %delay% /d c /m "[P - Pause] [M - Back to Menu]:"
 if %errorlevel%==1 pause
 if %errorlevel%==2 goto init
 if %errorlevel%==3 start %~f0
@@ -258,8 +249,7 @@ set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!
 else if %%d==ESTABLISHED (
 if defined filter_est set /a total[0][0]+=1 &set /a total[1][0]+=1 &set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
 set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!")) ^
-else if !cnt!==3 (
-if %%d==ESTABLISHED (if defined filter_est set /a total[0][0]+=1 &set /a total[2][0]+=1 & ^
+else if !cnt!==3 (if %%d==ESTABLISHED (if defined filter_est set /a total[0][0]+=1 &set /a total[2][0]+=1 & ^
 set /a est[0][0]+=1 &set /a est[2][0]+=1 &set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (if defined filter_handsh set /a total[0][0]+=1 &set /a total[2][0]+=1 & ^
 set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
@@ -276,8 +266,7 @@ if %%0==2 echo   !state_space!%ESC%[47;30m[ESTABLISHED]%ESC%[0m &echo.
 if %%0==3 echo   !state_space!%ESC%[44;1m[ESTABLISHED]%ESC%[0m &echo.
 if %%0==4 echo   !state_space!%ESC%[102;30m[UDP]%ESC%[0m &echo.
 for /l %%1 in (1, 1, !sortc[%%0]!) do echo   !sort[%%0][%%1]!)) ^
-else (
-for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo.
+else (for /l %%0 in (0, 1, !slen!) do if not !sortc[%%0]!==0 (echo.
 if %%0==1 echo   !state_space![HANDSHAKE] &echo.
 if %%0==2 echo   !state_space![ESTABLISHED] &echo.
 if %%0==3 if !sortc[2]!==0 echo   !state_space![ESTABLISHED] &echo.
@@ -308,7 +297,7 @@ set "title_print="
 title=Port Monitor - netstat Total:%total[0][0]% Est:%est[0][0]% ^(LH:%est[1][0]% FH:%est[2][0]%^)
 
 echo.
-choice /n /c mfr /m "[M - Back to Menu] [R - Reload] [F - Set Filter]:"
+choice /n /c mfnr /m "[M - Back to Menu] [R - Reload] [F - Set Filter]:"
 if %errorlevel%==1 goto init
 if %errorlevel%==2 (
 echo.
@@ -330,8 +319,7 @@ set "filter_cmd=TCP UDP listen est handsh PID" &set "next=" &set "get="
 if defined filter (for %%a in (!filter!) do (set "tmp=%%a" &set "tmp_=!tmp:~0,1!"
 
 if defined next (
-if "!next!"=="pid" tasklist /fi "pid eq !tmp!" | findstr !tmp! 2>&1>nul & ^
-if !errorlevel!==0 (set "pid=!tmp!" &set "filter_PID=1") else echo Cannot find Process. &pause
+if "!next!"=="pid" call :pid_check !tmp! &if !errorlevel!==0 set "pid=!tmp!" &set "filter_PID=1"
 set "next=")
 
 if "!tmp_!"=="/" (if !tmp:~1!==pid (set "next=pid") else set "get=!tmp:~1!") else (for %%b in (!filter_cmd!) do ^
@@ -342,9 +330,19 @@ if defined get (
 if "!get!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
 set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
 set "get="))))
+if %errorlevel%==3 echo. &set /p "new_pid=Please enter The PID:" &call :pid_check !new_pid! & ^
+if !errorlevel!==0 set "pass=start" &start %~f0
 
+set "new_pid="
 if defined filter_PID tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 goto all
+
+:pid_check <PID>
+set "pid_tmp=%~1"
+if not "!pid_tmp!"=="" ^
+tasklist /fi "pid eq %~1" | findstr %~1 2>&1>nul & ^
+if !errorlevel!==0 set "pid=%~1" &exit /b 0
+echo Cannot find Process. &pause &exit /b 1
 
 :alive
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
@@ -437,13 +435,12 @@ set bln=1 &set "list_w=" &set "list_b="
 for /l %%0 in (0, 1, 2) do for /l %%1 in (0, 1, 2) do (
 set /a total[%%0][%%1]=0 &set /a est[%%0][%%1]=0
 set /a listen[%%0][%%1]=0 &set /a hand[%%0][%%1]=0 &set /a estc[%%0][%%1]=0)
-set "filter_PID="
+set "filter_PID=" &set "pass="
 goto main
 
 :init_first
 cls &echo Loading......
 title=Port Monitor &color 0e &chcp 1252 >nul
-set "enter=" &set pid=0 &set imgname=0
 set /a total[3][3] &set /a est[3][3] &set /a listen[3][3] &set /a estc[3][3]
 set bln=1 &set "list_w=" &set "list_b="
 for /l %%0 in (0, 1, 2) do for /l %%1 in (0, 1, 2) do (
@@ -458,6 +455,7 @@ set "state_space=                              "
 set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1"
 set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /i "PID"') do set "netstat_title_=%%a"
+if defined pass (goto %pass%) else set pid=0 &goto main
 goto main
 
 REM Cool Stuff win10colors.cmd by Michele Locati (github/mlocati). Respect!!!
