@@ -10,12 +10,13 @@ This tool can do:
 - Check "LISTENING" Port is connect to Foreign Host
 - Can be more clearly and Easily to check port.
 
-## Multiple-Monitor
+## Multiple Monitor
 
 If you wnat to Monitor multiple port in same time you can use Command: /all
 
 - In this command would diplay all ports.
 - You can also use Filter function to check whatever you want and easily.
+- If you find a suspicious process you can Press 'N' and type the PID, this would open a new cmd window and start Single Monitor mode.
 
 ![filter1](https://user-images.githubusercontent.com/98234168/153688237-cf9ef4dd-e098-4e81-9398-2baedb2fa819.png)
 
@@ -29,13 +30,13 @@ Press 'R' to reload port contents and still apply Filters.
 
 ![filter2](https://user-images.githubusercontent.com/98234168/153666078-541508ba-b60c-463c-b6aa-3e79f44a2740.png)
 
-## Single-Monitor
+## Single_Monitor
 
 ![port_monitor5](https://user-images.githubusercontent.com/98234168/153008347-67431584-2d06-403c-aa90-8d4f14934075.png)
 
 ![port_monitor9](https://user-images.githubusercontent.com/98234168/153104892-17529eb1-7ab1-4f0b-a837-be45e942f2ce.png)
 
-Reload port contents per 1 seconds, or Press C.
+Reload port contents per 1 second, or Press C.
 
 Press N can open a new cmd window to Monitor another process.
 
