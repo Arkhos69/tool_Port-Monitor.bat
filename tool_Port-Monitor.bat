@@ -60,11 +60,11 @@ set "enter=" &goto main
 :start
 cls &color 07
 echo loading......
-title=Port Monitor - %imgname%
 for /f "tokens=1" %%a in ('tasklist /fi "pid eq %pid%" ^| findstr %pid%') do set imgname=%%a
+title=Port Monitor - %imgname%
 for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a"
-tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 set "enter=" &if %without_delay%==1 (set /a delay=0) else set /a delay=1
+tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 if "%quick_mode%"=="1" (color 0a &goto quick_loop) else (goto loop)
 
 :loop
