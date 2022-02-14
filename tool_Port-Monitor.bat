@@ -108,7 +108,7 @@ set /a interval=8 &set Title_Instant_Print=false
 set /a data_len=3
 set "data[1]=LISTENING !listen[0][0]! !listen[1][0]!_(!listen[1][1]!|!listen[1][2]!) !listen[2][0]!_(!listen[2][1]!|!listen[2][2]!)"
 set "data[2]=ESTABLISHED !est[0][0]! !est[1][0]!_(!est[1][1]!|!est[1][2]!) !est[2][0]!_(!est[2][1]!|!est[2][2]!)"
-set "data[3]=Total %total[0][0]% %total[1][0]%_(%total[1][1]%|%total[1][2]%) %total[2][0]%_(%total[2][1]%|%total[2][2]%)"
+set "data[3]=Total !total[0][0]! !total[1][0]!_(!total[1][1]!|!total[1][2]!) !total[2][0]!_(!total[2][1]!|!total[2][2]!)"
 call :table
 
 cls &echo.
