@@ -16,7 +16,7 @@ If you wnat to Monitor multiple port in same time you can use Command: /all
 
 - In this command would diplay all ports.
 - You can also use Filter function to check whatever you want and easily.
-- If you find a suspicious process you can Press 'N' and type the PID, this would open a new cmd window and start Single Monitor mode.
+- If you find a suspicious process you can Press 'N' and type the PID, this would open a new cmd window and start Single Monitor.
 
 ![filter1](https://user-images.githubusercontent.com/98234168/153688237-cf9ef4dd-e098-4e81-9398-2baedb2fa819.png)
 
