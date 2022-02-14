@@ -30,7 +30,7 @@ Press 'R' to reload port contents and still apply Filters.
 
 ![filter2](https://user-images.githubusercontent.com/98234168/153666078-541508ba-b60c-463c-b6aa-3e79f44a2740.png)
 
-## Single_Monitor
+## Single Monitor
 
 ![port_monitor5](https://user-images.githubusercontent.com/98234168/153008347-67431584-2d06-403c-aa90-8d4f14934075.png)
 
