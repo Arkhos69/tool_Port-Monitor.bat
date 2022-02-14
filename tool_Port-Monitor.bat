@@ -328,7 +328,7 @@ echo [F - Set Filter]
 echo [N - Open a new cmd window with Single Monitor mode]
 echo [K - Kill Process])
 if %errorlevel%==2 goto init
-if %errorlevel%==3 (
+if %errorlevel%==3 (set "filter="
 echo.
 echo ===================================================================================
 echo Set Filter:
