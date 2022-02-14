@@ -296,8 +296,14 @@ set "title_print="
 
 title=Port Monitor - netstat Total:%total[0][0]% Est:%est[0][0]% ^(LH:%est[1][0]% FH:%est[2][0]%^)
 
-echo.
-choice /n /c hmfnr /m "[H - Help] [M - Back to Menu] [R - Reload] [F - Set Filter]:"
+call :all_opt
+
+if defined filter_PID tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
+goto all
+
+:all_opt
+echo. &set "all_reload="
+choice /n /c hmfnkr /m "[H - Help] [M - Back to Menu] [R - Reload] [F - Set Filter]:"
 if %errorlevel%==1 (
 echo.
 echo [H - Help]
@@ -305,7 +311,7 @@ echo [M - Back to Menu]
 echo [R - Reload]
 echo [F - Set Filter]
 echo [N - Open a new cmd window with Single Monitor mode]
-pause)
+echo [K - Kill Process])
 if %errorlevel%==2 goto init
 if %errorlevel%==3 (
 echo.
@@ -337,17 +343,20 @@ else if "!tmp_!"=="$" set "filter_%%b=1" &for %%i in (!filter_cmd!) do if not %%
 if defined get (
 if "!get!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
 set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
-set "get="))))
+set "get=")))
+set "all_reload=1")
 if %errorlevel%==4 echo. &set /p "new_pid=Please enter The PID:" &call :pid_check !new_pid! & ^
 if !errorlevel!==0 set "pass=start" &start %~f0
-
+if %errorlevel%==5 echo. &set /p "new_pid=Please enter The PID:" &call :pid_check !new_pid! & ^
+if !errorlevel!==0 taskkill /f /t /pid !pid!
 set "new_pid="
-if defined filter_PID tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
-goto all
+
+if %errorlevel%==6 set "all_reload=1"
+if defined all_reload (exit /b) else goto all_opt
 
 :pid_check <PID>
-set "pid_tmp=%~1"
-if not "!pid_tmp!"=="" ^
+set "check_pid=%~1"
+if not "!check_pid!"=="" ^
 tasklist /fi "pid eq %~1" | findstr %~1 2>&1>nul & ^
 if !errorlevel!==0 set "pid=%~1" &exit /b 0
 echo Cannot find Process. &pause &exit /b 1
@@ -443,7 +452,7 @@ set bln=1 &set "list_w=" &set "list_b="
 for /l %%0 in (0, 1, 2) do for /l %%1 in (0, 1, 2) do (
 set /a total[%%0][%%1]=0 &set /a est[%%0][%%1]=0
 set /a listen[%%0][%%1]=0 &set /a hand[%%0][%%1]=0 &set /a estc[%%0][%%1]=0)
-set "filter_PID=" &set "pass="
+set "filter_PID=" &set "pass=" &set "all_reload="
 goto main
 
 :init_first
