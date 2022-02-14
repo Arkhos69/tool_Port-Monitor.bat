@@ -10,6 +10,21 @@ set without_delay=1
 set enter_mode=img
 exit /B
 
+:port_list
+set "localhost=127.0.0.1" &set "nullhost=0.0.0.0"
+REM ***** Can expansion *****
+set /a port_table_index=1
+set "port_table[0][0]=80,443,20,21"
+set "port_table[0][1]=http,https,ftp,ftp"
+
+set "port_table[1][0]=1080"
+set "port_table[1][1]=socks"
+
+REM port_list[0][0]=80 port_list[0][1]=http ...
+set /a port_cnt=-1 &for /l %%0 in (0, 1, %port_table_index%) do set /a tmp=!port_cnt! &for /l %%1 in (0, 1, 1) do ^
+set /a port_cnt=!tmp! &for %%a in (!port_table[%%0][%%1]!) do set /a port_cnt+=1 &set "port_list[!port_cnt!][%%1]=%%a"
+set "tmp=" &exit /b
+
 :main
 cls
 echo =======================================
@@ -343,8 +358,8 @@ else if "!tmp_!"=="$" set "filter_%%b=1" &for %%i in (!filter_cmd!) do if not %%
 if defined get (
 if "!get!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
 set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
-set "get=")))
-set "all_reload=1")
+set "get="))
+set "tmp=" &set "all_reload=1"))
 if %errorlevel%==4 echo. &set /p "new_pid=Please enter The PID:" &call :pid_check !new_pid! & ^
 if !errorlevel!==0 set "pass=start" &start %~f0
 if %errorlevel%==5 echo. &set /p "new_pid=Please enter The PID:" &call :pid_check !new_pid! & ^
@@ -482,18 +497,6 @@ for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1)
   exit /B 0
 )
 exit /B 0
-
-:port_list
-set "localhost=127.0.0.1" &set "nullhost=0.0.0.0"
-REM ***** Can expansion *****
-set "port_table[0][0]=80,443"
-set "port_table[0][1]=http,https"
-
-REM port_list[0][0]=80 port_list[0][1]=http ...
-for /l %%0 in (0, 1, 0) do for /l %%1 in (0, 1, 1) do (
-set /a cnt=-1 &for %%a in (!port_table[%%0][%%1]!) do set /a cnt+=1 &set "port_list[!cnt!][%%1]=%%a")
-set /a port_cnt=-1 &set /a port_cnt=-1 &for %%a in (!port_table[0][0]!) do set /a port_cnt+=1
-exit /b
 
 :eof
 echo oops &pause &exit
