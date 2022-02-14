@@ -20,7 +20,7 @@ set "port_table[0][1]=ftp,ftp,http,https"
 set "port_table[1][0]=1080"
 set "port_table[1][1]=socks"
 
-REM port_list[0][0]=80 port_list[0][1]=http ... port_list[4][0]=1080 port_list[4][1]=socks
+REM port_list[0][0]=20 port_list[0][1]=ftp ... port_list[4][0]=1080 port_list[4][1]=socks
 set /a port_cnt=-1 &for /l %%0 in (0, 1, %port_table_index%) do set /a tmp=!port_cnt! &for /l %%1 in (0, 1, 1) do ^
 set /a port_cnt=!tmp! &for %%a in (!port_table[%%0][%%1]!) do set /a port_cnt+=1 &set "port_list[!port_cnt!][%%1]=%%a"
 set "tmp=" &exit /b
