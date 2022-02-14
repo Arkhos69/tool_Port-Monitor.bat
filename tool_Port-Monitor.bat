@@ -12,7 +12,7 @@ exit /B
 
 :port_list
 set "localhost=127.0.0.1" &set "nullhost=0.0.0.0"
-REM ***** Can expansion *****
+REM ***** Can be expansion *****
 set /a port_table_index=1
 set "port_table[0][0]=20,21,80,443"
 set "port_table[0][1]=ftp,ftp,http,https"
@@ -38,8 +38,8 @@ if "%enter%"=="exit" exit
 if not defined enter (
 if "%enter_mode%"=="img" (set /p "enter=Please enter The Image name(or /pid):") ^
 else if "%enter_mode%"=="pid" (set /p "enter=Please enter The PID(or /img):") ^
-else (set "enter_mode=img")
-) else (goto command)
+else set "enter_mode=img"
+) else goto command
 goto main
 
 :command
