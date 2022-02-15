@@ -1,14 +1,14 @@
 @echo off &setlocal EnableDelayedExpansion
 call :setESC &call :port_list
-call :setting &goto init_first
+call :settings &goto init_first
 
-:setting
+:settings
 set show_detail=1
 set color_text=1
 set quick_mode=0
 set without_delay=1
 set enter_mode=img
-exit /B
+EXIT /B
 
 :port_list
 set "localhost=127.0.0.1" &set "nullhost=0.0.0.0"
@@ -43,7 +43,7 @@ else set "enter_mode=img"
 goto main
 
 :command
-set "cmd_all=img pid all wg"
+set "cmd_all=img pid all"
 if "!enter:~0,1!"=="/" (
 for %%a in (%cmd_all%) do if !enter:~1!==%%a goto %enter%
 goto /help)
@@ -100,13 +100,13 @@ if defined bool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][
 set "output[%%0]=!output[%%0]::%%i=:%%j!")
 
 if %%a==TCP (set /a total[0][0]+=1 &set /a cnt=0 &set "c=%%c"
-for %%l in (%localhost% %nullhost% [::]) do set /a cnt+=1 &set "l=%%l" & ^
+for %%l in (%localhost% %nullhost% [::1] [::]) do set /a cnt+=1 &set "l=%%l" & ^
 if "!c:~0,4!"=="!l:~0,4!" (set /a total[1][0]+=1 &set /a cnt=0
 if %%d==LISTENING (set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
 set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!") ^
 else if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
 set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!")) ^
-else if !cnt!==3 (set /a total[2][0]+=1
+else if !cnt!==4 (set /a total[2][0]+=1
 if %%d==ESTABLISHED (set /a est[0][0]+=1 &set /a est[2][0]+=1 & ^
 set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
@@ -256,7 +256,7 @@ if defined bool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][
 set "output[%%0]=!output[%%0]::%%i=:%%j!")
 
 if %%a==TCP if defined filter_TCP (set /a cnt=0 &set "c=%%c"
-for %%l in (%localhost% %nullhost% [::]) do set /a cnt+=1 &set "l=%%l" & ^
+for %%l in (%localhost% %nullhost% [::1] [::]) do set /a cnt+=1 &set "l=%%l" & ^
 if "!c:~0,4!"=="!l:~0,4!" (set /a cnt=0
 if %%d==LISTENING (if defined filter_listen set /a total[0][0]+=1 &set /a total[1][0]+=1 & ^
 set /a listen[0][0]+=1 &set /a listen[1][0]+=1 & ^
@@ -264,7 +264,7 @@ set /a sortc[0]+=1 &set "sort[0][!sortc[0]!]=!output[%%0]:%localhost%=localhost!
 else if %%d==ESTABLISHED (
 if defined filter_est set /a total[0][0]+=1 &set /a total[1][0]+=1 &set /a est[0][0]+=1 &set /a est[1][0]+=1 & ^
 set /a sortc[2]+=1 &set "sort[2][!sortc[2]!]=!output[%%0]:%localhost%=localhost!")) ^
-else if !cnt!==3 (if %%d==ESTABLISHED (if defined filter_est set /a total[0][0]+=1 &set /a total[2][0]+=1 & ^
+else if !cnt!==4 (if %%d==ESTABLISHED (if defined filter_est set /a total[0][0]+=1 &set /a total[2][0]+=1 & ^
 set /a est[0][0]+=1 &set /a est[2][0]+=1 &set /a sortc[3]+=1 &set "sort[3][!sortc[3]!]=!output[%%0]!") ^
 else if %%d NEQ LISTENING (if defined filter_handsh set /a total[0][0]+=1 &set /a total[2][0]+=1 & ^
 set /a sortc[1]+=1 &set "sort[1][!sortc[1]!]=!output[%%0]!") ^
@@ -416,7 +416,7 @@ goto init
 
 REM /!\ #undone3
 :watchdog
-start %~f0
+REM start %~f0
 goto wg_loop
 REM =====/!\=====
 set "mypath=%~dp0" &set "label_name=wg_content"
@@ -478,14 +478,12 @@ set bln=1 &set "list_w=" &set "list_b="
 for /l %%0 in (0, 1, 2) do for /l %%1 in (0, 1, 2) do (
 set /a total[%%0][%%1]=0 &set /a est[%%0][%%1]=0
 set /a listen[%%0][%%1]=0 &set /a hand[%%0][%%1]=0 &set /a estc[%%0][%%1]=0)
-set /a init_cnt=0
-for %%a in (1 1 0 img 1) do set /a init_cnt+=1 &set "default[!init_cnt!]=%%a"
-set /a init_cnt=0
-for %%a in (show_detail color_text quick_mode enter_mode without_delay) do ^
+set /a init_cnt=0 &for %%a in (1 1 0 img 1) do set /a init_cnt+=1 &set "default[!init_cnt!]=%%a"
+set /a init_cnt=0 &for %%a in (show_detail color_text quick_mode enter_mode without_delay) do ^
 set /a init_cnt+=1 &if not defined %%a for %%i in (!init_cnt!) do set "%%a=!default[%%i]!"
-set "state_space=                              "
 set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1"
 set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
+set "state_space=                              "
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /i "PID"') do set "netstat_title_=%%a"
 if defined pass (goto %pass%) else set pid=0 &goto main
 goto main
