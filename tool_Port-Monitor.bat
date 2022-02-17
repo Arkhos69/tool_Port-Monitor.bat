@@ -6,7 +6,7 @@ call :settings &goto init_first
 set show_detail=1
 set color_text=1
 set quick_mode=0
-set without_delay=1
+set without_delay=0
 set enter_mode=img
 EXIT /B
 
@@ -157,11 +157,11 @@ title=Port Monitor - %imgname%(%pid%) Total:%total[0][0]% [Est:%est[0][0]% (LH:%
 echo. &if "%without_delay%"=="1" (echo [Without-Delay Mode]
 for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a") ^
 else (choice /n /c pmndxc /t %delay% /d c /m "[P - Pause] [M - Back to Menu]:"
-if %errorlevel%==1 pause
-if %errorlevel%==2 goto init
-if %errorlevel%==3 start %~f0
-if %errorlevel%==4 set /a delay=0
-if %errorlevel%==5 exit)
+if !errorlevel!==1 pause
+if !errorlevel!==2 goto init
+if !errorlevel!==3 start %~f0
+if !errorlevel!==4 set /a delay=0
+if !errorlevel!==5 exit)
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 goto loop
 
