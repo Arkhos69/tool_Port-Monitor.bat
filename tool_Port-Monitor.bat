@@ -21,8 +21,8 @@ set "port_table[1][0]=1080"
 set "port_table[1][1]=socks"
 
 REM port_list[0][0]=20 port_list[0][1]=ftp ... port_list[4][0]=1080 port_list[4][1]=socks
-set /a port_cnt=-1 &for /l %%0 in (0, 1, %port_table_index%) do set /a tmp=!port_cnt! &for /l %%1 in (0, 1, 1) do ^
-set /a port_cnt=!tmp! &for %%a in (!port_table[%%0][%%1]!) do set /a port_cnt+=1 &set "port_list[!port_cnt!][%%1]=%%a"
+set /a port_len=-1 &for /l %%0 in (0, 1, %port_table_index%) do set /a tmp=!port_len! &for /l %%1 in (0, 1, 1) do ^
+set /a port_len=!tmp! &for %%a in (!port_table[%%0][%%1]!) do set /a port_len+=1 &set "port_list[!port_len!][%%1]=%%a"
 set "tmp=" &exit /b
 
 :main
@@ -77,7 +77,6 @@ cls &color 07
 echo loading......
 for /f "tokens=1" %%a in ('tasklist /fi "pid eq %pid%" ^| findstr %pid%') do set imgname=%%a
 title=Port Monitor - %imgname%
-for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a"
 set "enter=" &if %without_delay%==1 (set /a delay=0) else set /a delay=1
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 if "%quick_mode%"=="1" (color 0a &goto quick_loop) else (goto loop)
@@ -86,6 +85,7 @@ if "%quick_mode%"=="1" (color 0a &goto quick_loop) else (goto loop)
 set /a count=0 &set /a slen=4 &for /l %%0 in (0, 1, !slen!) do set /a sortc[%%0]=0
 for /l %%0 in (0, 1, 2) do set /a total[%%0][0]=0 &set /a est[%%0][0]=0 &set /a listen[%%0][0]=0
 
+for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a"
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do for /f "tokens=1" %%p in ("%%a") do ^
 if %%p==TCP (for /f "tokens=5" %%t in ("%%a") do if %%t==%pid% set/a count+=1 &set output[!count!]=%%a) ^
 else if %%p==UDP for /f "tokens=4" %%u in ("%%a") do if %%u==%pid% set/a count+=1 &set output[!count!]=%%a
@@ -94,7 +94,7 @@ if !count!==0 (echo. &echo ^(Empty^)) else (
 for /l %%0 in (1, 1, !count!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
 
 if "%show_detail%"=="1" (set "bool="
-for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_cnt%) do ^
+for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_len%) do ^
 if %%p==!port_list[%%1][0]! (set "bool=1") else (if %%q==!port_list[%%1][0]! set "bool=1") & ^
 if defined bool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][1]!) do ^
 set "output[%%0]=!output[%%0]::%%i=:%%j!")
@@ -154,14 +154,13 @@ set "title_print="
 
 title=Port Monitor - %imgname%(%pid%) Total:%total[0][0]% [Est:%est[0][0]% (LH:%est[1][0]% FH:%est[2][0]%)]
 
-echo. &if "%without_delay%"=="1" (echo [Without-Delay Mode]
-for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a") ^
+echo. &if "%without_delay%"=="1" (echo [Without-Delay Mode]) ^
 else (choice /n /c pmndxc /t %delay% /d c /m "[P - Pause] [M - Back to Menu]:"
-if !errorlevel!==1 pause
-if !errorlevel!==2 goto init
-if !errorlevel!==3 start %~f0
-if !errorlevel!==4 set /a delay=0
-if !errorlevel!==5 exit)
+if !ERRORLEVEL!==1 pause
+if !ERRORLEVEL!==2 goto init
+if !ERRORLEVEL!==3 start %~f0
+if !ERRORLEVEL!==4 set /a delay=0
+if !ERRORLEVEL!==5 exit)
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 goto loop
 
@@ -250,7 +249,7 @@ if !count!==0 (echo. &echo ^(Empty^)) else (
 for /l %%0 in (1, 1, !count!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
 
 if "%show_detail%"=="1" (set "bool="
-for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_cnt%) do ^
+for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_len%) do ^
 if %%p==!port_list[%%1][0]! (set "bool=1") else (if %%q==!port_list[%%1][0]! set "bool=1") & ^
 if defined bool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][1]!) do ^
 set "output[%%0]=!output[%%0]::%%i=:%%j!")
@@ -318,8 +317,8 @@ goto all
 
 :all_opt
 echo. &set "all_reload="
-choice /n /c hmfnkr /m "[H - Help] [M - Back to Menu] [R - Reload] [F - Set Filter]:"
-if %errorlevel%==1 (
+choice /n /c hmfnkxr /m "[H - Help] [M - Back to Menu] [R - Reload] [F - Set Filter]:"
+if %ERRORLEVEL%==1 (
 echo.
 echo [H - Help]
 echo [M - Back to Menu]
@@ -327,8 +326,9 @@ echo [R - Reload]
 echo [F - Set Filter]
 echo [N - Open a new cmd window with Single Monitor mode]
 echo [K - Kill Process])
-if %errorlevel%==2 goto init
-if %errorlevel%==3 (set "filter="
+echo [X - Exit])
+if %ERRORLEVEL%==2 goto init
+if %ERRORLEVEL%==3 (set "filter="
 echo.
 echo ===================================================================================
 echo Set Filter:
@@ -348,7 +348,7 @@ set "filter_cmd=TCP UDP listen est handsh PID" &set "next=" &set "get="
 if defined filter (for %%a in (!filter!) do (set "tmp=%%a" &set "tmp_=!tmp:~0,1!"
 
 if defined next (
-if "!next!"=="pid" call :pid_check !tmp! &if !errorlevel!==0 set "pid=!tmp!" &set "filter_PID=1"
+if "!next!"=="pid" call :pid_check !tmp! &if !ERRORLEVEL!==0 set "pid=!tmp!" &set "filter_PID=1"
 set "next=")
 
 if "!tmp_!"=="/" (if !tmp:~1!==pid (set "next=pid") else set "get=!tmp:~1!") else (for %%b in (!filter_cmd!) do ^
@@ -360,20 +360,21 @@ if "!get!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=
 set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
 set "get="))
 set "tmp=" &set "all_reload=1"))
-if %errorlevel%==4 echo. &set /p "new_pid=Please enter The PID:" &call :pid_check !new_pid! & ^
-if !errorlevel!==0 set "pass=start" &start %~f0
-if %errorlevel%==5 echo. &set /p "new_pid=Please enter The PID:" &call :pid_check !new_pid! & ^
-if !errorlevel!==0 taskkill /f /t /pid !pid!
+if %ERRORLEVEL%==4 echo. &set /p "new_pid=[New Monitor] Please enter The PID:" &call :pid_check !new_pid! & ^
+if !ERRORLEVEL!==0 set "pass=start" &start %~f0
+if %ERRORLEVEL%==5 echo. &set /p "new_pid=[Kill Process] Please enter The PID:" &call :pid_check !new_pid! & ^
+if !ERRORLEVEL!==0 taskkill /f /t /pid !pid!
 set "new_pid="
 
-if %errorlevel%==6 set "all_reload=1"
+IF %ERRORLEVEL%==6 exit
+if %ERRORLEVEL%==7 set "all_reload=1"
 if defined all_reload (exit /b) else goto all_opt
 
 :pid_check <PID>
 set "check_pid=%~1"
 if not "!check_pid!"=="" ^
 tasklist /fi "pid eq %~1" | findstr %~1 2>&1>nul & ^
-if !errorlevel!==0 set "pid=%~1" &exit /b 0
+if !ERRORLEVEL!==0 set "pid=%~1" &exit /b 0
 echo Cannot find Process. &pause &exit /b 1
 
 :alive
@@ -497,4 +498,4 @@ for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1)
 exit /B 0
 
 :eof
-echo oops &pause &exit
+echo oops &pause
