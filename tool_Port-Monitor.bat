@@ -115,9 +115,9 @@ set /a sort[1][0]+=1 &set "sort[1][!sort[1][0]!]=!output[%%0]!") ^
 else if "%list_w%"=="%pid%" (set /a cnt_listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)) ^
 else if %%a==UDP (set /a cnt_total[0][0]+=1 &set /a cnt_udp[0][0]+=1
 set /a cnt=0 &set "b=%%b" &for %%l in (%localhost% %nullhost% [::1] [::]) do set /a cnt+=1 &set "l=%%l" & ^
-if "!b:~0,4!"=="!l:~0,4!" (set /a cnt=0 &set /a cnt_udp[1][0]+=1
-set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") ^
-else if !cnt!==4 set /a cnt_udp[2][0]+=1 &set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!"))
+if "!b:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt=0 &set /a cnt_udp[1][0]+=1
+set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") else if !cnt!==4 (
+set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1 &set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!")))
 
 if %bln%==1 (for /l %%0 in (0, 1, 2) do (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
@@ -296,9 +296,9 @@ set /a cnt_total[0][0]+=1 &set /a cnt_total[2][0]+=1 &set /a sort[1][0]+=1 &set 
 else if "%list_w%"=="%pid%" (set /a cnt_listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill))
 if %%a==UDP if defined filter_UDP (set /a cnt_total[0][0]+=1 &set /a cnt_udp[0][0]+=1
 set /a cnt=0 &set "b=%%b" &for %%l in (%localhost% %nullhost% [::1] [::]) do set /a cnt+=1 &set "l=%%l" & ^
-if "!b:~0,4!"=="!l:~0,4!" (set /a cnt=0 &set /a cnt_udp[1][0]+=1
-set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") ^
-else if !cnt!==4 set /a cnt_udp[2][0]+=1 &set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!"))
+if "!b:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt=0 &set /a cnt_udp[1][0]+=1
+set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") else if !cnt!==4 (
+set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1 &set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!")))
 
 if "%color_text%"=="1" (
 for /l %%0 in (0, 1, !sort_len!) do if not !sort[%%0][0]!==0 (echo.
