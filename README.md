@@ -22,17 +22,17 @@ If you wnat to Monitor multiple port at the same time you can try Command: /all
 
 ### After
 
-![filter3](https://user-images.githubusercontent.com/98234168/153665129-8066cdab-7fee-4423-b7c7-c46c9ab7da6b.png)
+![newfilter2](https://user-images.githubusercontent.com/98234168/154866607-3280cf8f-5184-49c0-ad00-6538e912e4a8.png)
 
 Press 'R' to reload port contents and still apply Filters.
 
 ### Before
 
-![filter2](https://user-images.githubusercontent.com/98234168/153666078-541508ba-b60c-463c-b6aa-3e79f44a2740.png)
+![newfilter1](https://user-images.githubusercontent.com/98234168/154866613-1fbb3d28-1e67-4460-b141-8d3647d41366.png)
 
 ## Single Monitor
 
-![port_monitor5](https://user-images.githubusercontent.com/98234168/153008347-67431584-2d06-403c-aa90-8d4f14934075.png)
+![tor2](https://user-images.githubusercontent.com/98234168/154866663-e3f5bfcb-73b6-4fac-a4cb-541fa2d03c78.png)
 
 ![port_monitor9](https://user-images.githubusercontent.com/98234168/153104892-17529eb1-7ab1-4f0b-a837-be45e942f2ce.png)
 
