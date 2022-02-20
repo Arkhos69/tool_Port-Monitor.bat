@@ -166,7 +166,7 @@ if not !Title_Instant_Print!==true (echo. &echo   !title_print:_= ! &echo.
 for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
 set "title_print="
 
-title=Port Monitor - %imgname%(%pid%) Total:%cnt_total[0][0]% [Est:%cnt_est[0][0]% (LH:%cnt_est[1][0]% FH:%cnt_est[2][0]%)]
+title=Port Monitor - %imgname%(%pid%) Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
 echo. &if "%without_delay%"=="1" (echo [Without-Delay Mode]) ^
 else (choice /n /c hpmndkxr /t %delay% /d r /m "[H - Help] [P - Pause] [M - Back to Menu]:"
@@ -340,7 +340,7 @@ echo. &echo   !title_print:_= ! &echo.
 for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]="
 set "title_print="
 
-title=Port Monitor - netstat Total:%cnt_total[0][0]% [Est:%cnt_est[0][0]% (LH:%cnt_est[1][0]% FH:%cnt_est[2][0]%)]
+title=Port Monitor - netstat Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
 call :all_opt
 
