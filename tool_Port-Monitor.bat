@@ -82,17 +82,17 @@ tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 if "%quick_mode%"=="1" (color 0a &goto quick_loop) else (goto loop)
 
 :loop
-set /a count=0 &set /a sort_len=5 &for /l %%0 in (0, 1, !sort_len!) do set /a sort[%%0][0]=0
+set /a output_cnt=0 &set /a sort_len=5 &for /l %%0 in (0, 1, !sort_len!) do set /a sort[%%0][0]=0
 for /l %%0 in (0, 1, 2) do set /a cnt_total[%%0][0]=0 &set /a cnt_listen[%%0][0]=0 & ^
 set /a cnt_handsh[%%0][0]=0 &set /a cnt_est[%%0][0]=0 &set /a cnt_udp[%%0][0]=0
 
 for /f "tokens=*" %%a in ('tasklist /fi "pid eq %pid%"') do set "tasklist_cont=%%a"
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do for /f "tokens=1" %%p in ("%%a") do ^
-if %%p==TCP (for /f "tokens=5" %%t in ("%%a") do if %%t==%pid% set/a count+=1 &set output[!count!]=%%a) ^
-else if %%p==UDP for /f "tokens=4" %%u in ("%%a") do if %%u==%pid% set/a count+=1 &set output[!count!]=%%a
+if %%p==TCP (for /f "tokens=5" %%t in ("%%a") do if %%t==%pid% set/a output_cnt+=1 &set output[!output_cnt!]=%%a) ^
+else if %%p==UDP for /f "tokens=4" %%u in ("%%a") do if %%u==%pid% set/a output_cnt+=1 &set output[!output_cnt!]=%%a
 
-if !count!==0 (echo. &echo ^(Empty^)) else (
-for /l %%0 in (1, 1, !count!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
+if !output_cnt! GTR 0 (
+for /l %%0 in (1, 1, !output_cnt!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
 
 if "%show_details%"=="1" (set "bool="
 for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_len%) do ^
@@ -136,7 +136,7 @@ set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
 set "data[%%b]=!state_table[%%c]! !%%a[0][0]!" & ^
 set "data[%%b]=!data[%%b]! !%%a[1][0]!_(!%%a[1][1]!|!%%a[1][2]!) !%%a[2][0]!_(!%%a[2][1]!|!%%a[2][2]!)")
 
-call :table
+call :table)
 
 cls &echo.
 echo Image Name                     PID Session Name        Session#    Mem Usage
@@ -144,6 +144,7 @@ echo ========================= ======== ================ =========== ===========
 echo %tasklist_cont%
 echo. &echo   %netstat_title_%
 
+if !output_cnt! GTR 0 (
 if "%color_text%"=="1" (
 for /l %%0 in (0, 1, !sort_len!) do if not !sort[%%0][0]!==0 (echo.
 for /l %%1 in (1, 1, !sort[%%0][0]!) do (
@@ -160,11 +161,13 @@ if %%0==3 if !sort[2][0]!==0 echo   %state_space%[ESTABLISHED] &echo.
 if %%0==4 echo   %state_space%[UDP] &echo.
 if %%0==5 if !sort[4][0]!==0 echo   %state_space%[UDP] &echo.
 for /l %%1 in (1, 1, !sort[%%0][0]!) do echo   !sort[%%0][%%1]!))
-for /l %%0 in (1, 1, !count!) do set "output[!count!]=")
+for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
 
-if not !Title_Instant_Print!==true (echo. &echo   !title_print:_= ! &echo.
-for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]=")
+echo. &echo   !title_print:_= ! &echo.
+for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]="
 set "title_print="
+
+) else echo. &echo ^(Empty^)
 
 title=Port Monitor - %imgname%(%pid%) Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
@@ -204,15 +207,15 @@ if !data_len! geq 50 set Title_Instant_Print=true
 if !Title_Instant_Print!==true echo !title_print!
 
 for /l %%t in (1, 1, !data_len!) do (
-set /a count=0 &set /a interval=8
+set /a sl_cnt=0 &set /a interval=8
 
 if defined data[%%t] (
 for %%a in (!data[%%t]!) do (
 set str=%%a &set /a str_cnt=0
 for /l %%0 in (1, 1, 30) do if defined str (set str=!str:~1!
 if defined str set /a str_cnt+=1)
-set /a count+=1
-set /a str_len[!count!]=!str_cnt! &set data_[!count!]=%%a)
+set /a sl_cnt+=1
+set /a str_len[!sl_cnt!]=!str_cnt! &set data_[!sl_cnt!]=%%a)
 
 for /l %%0 in (1, 1, !len!) do (
 if %%0 gtr 1 set /a interval=6
@@ -227,11 +230,11 @@ if !Title_Instant_Print!==true echo !table[%%t]!
 exit /b
 
 :quick_loop
-set /a count=0 &set /a sort_len=2 &for /l %%0 in (0, 1, !sort_len!) do set /a sort[%%0][0]=0
+set /a output_cnt=0 &set /a sort_len=2 &for /l %%0 in (0, 1, !sort_len!) do set /a sort[%%0][0]=0
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do (
-for /f "tokens=5" %%b in ("%%a") do if %%b==%pid% set/a count+=1 &set output[!count!]=%%a)
-if !count!==0 (echo. &echo ^(Empty^)) else (
-for /l %%0 in (1, 1, !count!) do for /f "tokens=4" %%a in ("!output[%%0]!") do (
+for /f "tokens=5" %%b in ("%%a") do if %%b==%pid% set/a output_cnt+=1 &set output[!output_cnt!]=%%a)
+if !output_cnt!==0 (echo. &echo ^(Empty^)) else (
+for /l %%0 in (1, 1, !output_cnt!) do for /f "tokens=4" %%a in ("!output[%%0]!") do (
 if %%a==LISTENING (set /a sort[0][0]+=1 &set "sort[0][!sort[0][0]!]=!output[%%0]!") ^
 else if %%a==ESTABLISHED (set /a sort[2][0]+=1 &set "sort[2][!sort[2][0]!]=!output[%%0]!") ^
 else (set /a sort[1][0]+=1 &set "sort[1][!sort[1][0]!]=!output[%%0]!"))
@@ -260,19 +263,19 @@ for %%a in (TCP UDP listen est handsh) do if defined filter_%%a set "filter_echo
 if defined filter_PID set "filter_echo=!filter_echo! | PID: %pid%"
 set "filter_echo=!filter_echo:~2!" &echo Filter:[!filter_echo!]
 
-set /a count=0 &set /a sort_len=5 &for /l %%0 in (0, 1, !sort_len!) do set /a sort[%%0][0]=0
+set /a output_cnt=0 &set /a sort_len=5 &for /l %%0 in (0, 1, !sort_len!) do set /a sort[%%0][0]=0
 
 for /l %%0 in (0, 1, 2) do set /a cnt_total[%%0][0]=0 &set /a cnt_listen[%%0][0]=0 & ^
 set /a cnt_handsh[%%0][0]=0 &set /a cnt_est[%%0][0]=0 &set /a cnt_udp[%%0][0]=0
 
 if defined filter_PID (
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do for /f "tokens=1" %%p in ("%%a") do ^
-if %%p==TCP (for /f "tokens=5" %%t in ("%%a") do if %%t==%pid% set/a count+=1 &set output[!count!]=%%a) ^
-else if %%p==UDP for /f "tokens=4" %%u in ("%%a") do if %%u==%pid% set/a count+=1 &set output[!count!]=%%a) ^
-else for /f "tokens=*" %%a in ('netstat -ano') do set /a count+=1 &set output[!count!]=%%a
+if %%p==TCP (for /f "tokens=5" %%t in ("%%a") do if %%t==%pid% set/a output_cnt+=1 &set output[!output_cnt!]=%%a) ^
+else if %%p==UDP for /f "tokens=4" %%u in ("%%a") do if %%u==%pid% set/a output_cnt+=1 &set output[!output_cnt!]=%%a) ^
+else for /f "tokens=*" %%a in ('netstat -ano') do set /a output_cnt+=1 &set output[!output_cnt!]=%%a
 
-if !count!==0 (echo. &echo ^(Empty^)) else (
-for /l %%0 in (1, 1, !count!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
+if !output_cnt! GTR 0 (
+for /l %%0 in (1, 1, !output_cnt!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
 
 if "%show_details%"=="1" (set "bool="
 for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_len%) do ^
@@ -315,7 +318,7 @@ if %%0==3 if !sort[2][0]!==0 echo   %state_space%[ESTABLISHED] &echo.
 if %%0==4 echo   %state_space%[UDP] &echo.
 if %%0==5 if !sort[4][0]!==0 echo   %state_space%[UDP] &echo.
 for /l %%1 in (1, 1, !sort[%%0][0]!) do echo   !sort[%%0][%%1]!))
-for /l %%0 in (1, 1, !count!) do set "output[!count!]=")
+for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
 
 if %bln%==1 (for /l %%0 in (0, 1, 2) do (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
@@ -337,8 +340,10 @@ set "data[%%b]=!data[%%b]! !%%a[1][0]!_(!%%a[1][1]!|!%%a[1][2]!) !%%a[2][0]!_(!%
 call :table
 
 echo. &echo   !title_print:_= ! &echo.
-for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]="
+for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]:_= ! &set "table[%%0]="
 set "title_print="
+
+) else echo. &echo ^(Empty^)
 
 title=Port Monitor - netstat Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
