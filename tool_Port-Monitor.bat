@@ -136,7 +136,7 @@ set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
 set "data[%%b]=!state_table[%%c]! !%%a[0][0]!" & ^
 set "data[%%b]=!data[%%b]! !%%a[1][0]!_(!%%a[1][1]!|!%%a[1][2]!) !%%a[2][0]!_(!%%a[2][1]!|!%%a[2][2]!)")
 
-call :table)
+if !data_len! GTR 0 call :table)
 
 cls &echo.
 echo Image Name                     PID Session Name        Session#    Mem Usage
@@ -163,9 +163,9 @@ if %%0==5 if !sort[4][0]!==0 echo   %state_space%[UDP] &echo.
 for /l %%1 in (1, 1, !sort[%%0][0]!) do echo   !sort[%%0][%%1]!))
 for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
 
-echo. &echo   !title_print:_= ! &echo.
-for /l %%0 in (1, 1, %data_len%) do echo   !table[%%0]:_= ! &set "table[%%0]="
-set "title_print="
+if !data_len! GTR 0 (echo. &echo   !title_print:_= ! &echo.
+for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]:_= ! &set "table[%%0]="
+set "title_print=")
 
 ) else echo. &echo ^(Empty^)
 
@@ -337,11 +337,10 @@ set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
 set "data[%%b]=!state_table[%%c]! !%%a[0][0]!" & ^
 set "data[%%b]=!data[%%b]! !%%a[1][0]!_(!%%a[1][1]!|!%%a[1][2]!) !%%a[2][0]!_(!%%a[2][1]!|!%%a[2][2]!)")
 
-call :table
-
+if !data_len! GTR 0 (call :table
 echo. &echo   !title_print:_= ! &echo.
 for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]:_= ! &set "table[%%0]="
-set "title_print="
+set "title_print=")
 
 ) else echo. &echo ^(Empty^)
 
