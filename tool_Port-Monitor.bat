@@ -115,7 +115,7 @@ set /a sort[1][0]+=1 &set "sort[1][!sort[1][0]!]=!output[%%0]!") ^
 else if "%list_w%"=="%pid%" (set /a cnt_listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)) ^
 else if %%a==UDP (set /a cnt_total[0][0]+=1 &set /a cnt_udp[0][0]+=1
 set /a cnt=0 &set "b=%%b" &for %%l in (%localhost% %nullhost% [::1] [::]) do set /a cnt+=1 &set "l=%%l" & ^
-if "!b:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt=0 &set /a cnt_udp[1][0]+=1
+if "!b:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &set /a cnt=0
 set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") else if !cnt!==4 (
 set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1 &set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!")))
 
@@ -128,7 +128,7 @@ if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
 else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
 
 set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
-set /a interval=8 &set Title_Instant_Print=false
+set /a interval=8 &set Title_Instant_Print=false)
 
 set /a data_len=0 &set /a cnt=0
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &if !%%a[0][1]! GTR 0 (
@@ -136,7 +136,7 @@ set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
 set "data[%%b]=!state_table[%%c]! !%%a[0][0]!" & ^
 set "data[%%b]=!data[%%b]! !%%a[1][0]!_(!%%a[1][1]!|!%%a[1][2]!) !%%a[2][0]!_(!%%a[2][1]!|!%%a[2][2]!)")
 
-if !data_len! GTR 0 call :table)
+if !data_len! GTR 0 call :table
 
 cls &echo.
 echo Image Name                     PID Session Name        Session#    Mem Usage
@@ -163,11 +163,11 @@ if %%0==5 if !sort[4][0]!==0 echo   %state_space%[UDP] &echo.
 for /l %%1 in (1, 1, !sort[%%0][0]!) do echo   !sort[%%0][%%1]!))
 for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
 
+) else echo. &echo ^(Empty^)
+
 if !data_len! GTR 0 (echo. &echo   !title_print:_= ! &echo.
 for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]:_= ! &set "table[%%0]="
 set "title_print=")
-
-) else echo. &echo ^(Empty^)
 
 title=Port Monitor - %imgname%(%pid%) Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
@@ -299,7 +299,7 @@ set /a cnt_total[0][0]+=1 &set /a cnt_total[2][0]+=1 &set /a sort[1][0]+=1 &set 
 else if "%list_w%"=="%pid%" (set /a cnt_listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill))
 if %%a==UDP if defined filter_UDP (set /a cnt_total[0][0]+=1 &set /a cnt_udp[0][0]+=1
 set /a cnt=0 &set "b=%%b" &for %%l in (%localhost% %nullhost% [::1] [::]) do set /a cnt+=1 &set "l=%%l" & ^
-if "!b:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt=0 &set /a cnt_udp[1][0]+=1
+if "!b:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &set /a cnt=0 
 set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") else if !cnt!==4 (
 set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1 &set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!")))
 
@@ -331,6 +331,8 @@ else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
 set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
 set /a interval=8 &set Title_Instant_Print=false
 
+) else echo. &echo ^(Empty^)
+
 set /a data_len=0 &set /a cnt=0
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &if !%%a[0][1]! GTR 0 (
 set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
@@ -341,8 +343,6 @@ if !data_len! GTR 0 (call :table
 echo. &echo   !title_print:_= ! &echo.
 for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]:_= ! &set "table[%%0]="
 set "title_print=")
-
-) else echo. &echo ^(Empty^)
 
 title=Port Monitor - netstat Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
@@ -404,7 +404,9 @@ set "pid_="
 
 IF %ERRORLEVEL%==6 exit
 if %ERRORLEVEL%==7 set "all_reload=1"
-if defined all_reload (exit /b) else goto all_opt
+
+if defined all_reload exit /b
+goto all_opt
 
 :pid_check <PID>
 set "check_pid=%~1" &if defined check_pid (
@@ -524,7 +526,7 @@ set /a cnt=0 &for %%a in (LISTENING HANDSHAKE ESTABLISHED UDP Total) do set /a c
 set /a cnt=0 &for %%a in (103x30m 46x30m 47x30m 44x1m 102x30m) do ^
 set /a cnt+=1 &for %%b in (!cnt!) do set "color_table[%%b]=%%a" &set "color_table[%%b]=!color_table[%%b]:x=;!"
 set /a cnt=0
-if defined pass (goto %pass%) else set pid=0 &goto main
+if defined pass (set "pass_%pass%=1" &goto %pass%) else set pid=0 &goto main
 goto main
 
 REM Cool Stuff win10colors.cmd by Michele Locati (github/mlocati). Respect!!!
