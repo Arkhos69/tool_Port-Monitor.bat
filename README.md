@@ -34,11 +34,13 @@ Press 'R' to reload port contents and still apply Filters.
 
 ![tor2](https://user-images.githubusercontent.com/98234168/154866663-e3f5bfcb-73b6-4fac-a4cb-541fa2d03c78.png)
 
-![port_monitor9](https://user-images.githubusercontent.com/98234168/153104892-17529eb1-7ab1-4f0b-a837-be45e942f2ce.png)
+![browser](https://user-images.githubusercontent.com/98234168/154960072-ca7b7e4f-fd91-48cd-90b5-4b5c2ff72856.png)
 
-Reload port contents per 1 second, or Press C.
+Reload port contents per 1 second, or Press R.
 
 Press N can open a new cmd window to Monitor another process.
+
+![port_monitor9](https://user-images.githubusercontent.com/98234168/153104892-17529eb1-7ab1-4f0b-a837-be45e942f2ce.png)
 
 Thanks: [mlocati](https://gist.github.com/mlocati) giving us [win10colors.cmd](https://gist.github.com/mlocati/fdabcaeb8071d5c75a2d51712db24011) a very useful and amazing way to turn cmd being colorful.
 
