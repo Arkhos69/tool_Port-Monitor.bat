@@ -119,6 +119,9 @@ if "!b:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &s
 set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") else if !cnt!==4 (
 set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1 &set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!")))
 
+set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
+set /a interval=8 &set Title_Instant_Print=false)
+
 if %bln%==1 (for /l %%0 in (0, 1, 2) do (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
 set /a %%a[%%0][2]=%%a[%%0][0]) &set bln=0)
@@ -126,9 +129,6 @@ set /a %%a[%%0][2]=%%a[%%0][0]) &set bln=0)
 for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
 if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
 else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
-
-set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
-set /a interval=8 &set Title_Instant_Print=false)
 
 set /a data_len=0 &set /a cnt=0
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &if !%%a[0][1]! GTR 0 (
@@ -268,11 +268,15 @@ set /a output_cnt=0 &set /a sort_len=5 &for /l %%0 in (0, 1, !sort_len!) do set 
 for /l %%0 in (0, 1, 2) do set /a cnt_total[%%0][0]=0 &set /a cnt_listen[%%0][0]=0 & ^
 set /a cnt_handsh[%%0][0]=0 &set /a cnt_est[%%0][0]=0 &set /a cnt_udp[%%0][0]=0
 
-if defined filter_PID (
-for /f "tokens=*" %%a in ('netstat -ano ^| findstr /e %pid%') do for /f "tokens=1" %%p in ("%%a") do ^
-if %%p==TCP (for /f "tokens=5" %%t in ("%%a") do if %%t==%pid% set/a output_cnt+=1 &set output[!output_cnt!]=%%a) ^
-else if %%p==UDP for /f "tokens=4" %%u in ("%%a") do if %%u==%pid% set/a output_cnt+=1 &set output[!output_cnt!]=%%a) ^
-else for /f "tokens=*" %%a in ('netstat -ano') do set /a output_cnt+=1 &set output[!output_cnt!]=%%a
+for /f "tokens=*" %%n in ('netstat -ano') do for /f "tokens=1,4,5" %%a in ("%%n") do (
+set "pid_bln=" &if defined filter_PID (if %%a==TCP (if %%c==%pid% set "pid_bln=1") ^
+else if %%a==UDP (if %%b==%pid% set "pid_bln=1")) else set "pid_bln=1"
+
+if defined pid_bln (if %%a==TCP if defined filter_TCP (
+if %%b==LISTENING (if defined filter_listen set /a output_cnt+=1 &set output[!output_cnt!]=%%n) ^
+else if %%b==ESTABLISHED (if defined filter_est set /a output_cnt+=1 &set output[!output_cnt!]=%%n) ^
+else if defined filter_handsh set /a output_cnt+=1 &set output[!output_cnt!]=%%n)
+if %%a==UDP if defined filter_UDP set /a output_cnt+=1 &set output[!output_cnt!]=%%n))
 
 if !output_cnt! GTR 0 (
 for /l %%0 in (1, 1, !output_cnt!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
@@ -283,26 +287,45 @@ if %%p==!port_list[%%1][0]! (set "bool=1") else (if %%q==!port_list[%%1][0]! set
 if defined bool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][1]!) do ^
 set "output[%%0]=!output[%%0]::%%i=:%%j!")
 
-if %%a==TCP if defined filter_TCP (set /a cnt=0 &set "c=%%c"
+if %%a==TCP (set /a cnt_total[0][0]+=1 &set /a cnt=0 &set "c=%%c"
 for %%l in (%localhost% %nullhost% [::1] [::]) do set /a cnt+=1 &set "l=%%l" & ^
-if "!c:~0,4!"=="!l:~0,4!" (set /a cnt=0
-if %%d==LISTENING (if defined filter_listen set /a cnt_total[0][0]+=1 &set /a cnt_total[1][0]+=1 & ^
-set /a cnt_listen[0][0]+=1 &set /a cnt_listen[1][0]+=1 & ^
+if "!c:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt=0
+if %%d==LISTENING (set /a cnt_listen[0][0]+=1 &set /a cnt_listen[1][0]+=1 & ^
 set /a sort[0][0]+=1 &set "sort[0][!sort[0][0]!]=!output[%%0]:%localhost%=localhost!") ^
-else if %%d==ESTABLISHED (if defined filter_est set /a cnt_total[0][0]+=1 & ^
-set /a cnt_total[1][0]+=1 &set /a cnt_est[0][0]+=1 &set /a cnt_est[1][0]+=1 & ^
+else if %%d==ESTABLISHED (set /a cnt_est[0][0]+=1 &set /a cnt_est[1][0]+=1 & ^
 set /a sort[2][0]+=1 &set "sort[2][!sort[2][0]!]=!output[%%0]:%localhost%=localhost!")) ^
-else if !cnt!==4 (if %%d==ESTABLISHED (if defined filter_est set /a cnt_total[0][0]+=1 &set /a cnt_total[2][0]+=1 & ^
-set /a cnt_est[0][0]+=1 &set /a cnt_est[2][0]+=1 &set /a sort[3][0]+=1 &set "sort[3][!sort[3][0]!]=!output[%%0]!") ^
-else if %%d NEQ LISTENING (if defined filter_handsh set /a cnt_handsh[0][0]+=1 &set /a cnt_handsh[2][0]+=1
-set /a cnt_total[0][0]+=1 &set /a cnt_total[2][0]+=1 &set /a sort[1][0]+=1 &set "sort[1][!sort[1][0]!]=!output[%%0]!") ^
-else if "%list_w%"=="%pid%" (set /a cnt_listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill))
-if %%a==UDP if defined filter_UDP (set /a cnt_total[0][0]+=1 &set /a cnt_udp[0][0]+=1
+else if !cnt!==4 (set /a cnt_total[2][0]+=1
+if %%d==ESTABLISHED (set /a cnt_est[0][0]+=1 &set /a cnt_est[2][0]+=1 & ^
+set /a sort[3][0]+=1 &set "sort[3][!sort[3][0]!]=!output[%%0]!") ^
+else if %%d NEQ LISTENING (set /a cnt_handsh[0][0]+=1 &set /a cnt_handsh[2][0]+=1
+set /a sort[1][0]+=1 &set "sort[1][!sort[1][0]!]=!output[%%0]!") ^
+else if "%list_w%"=="%pid%" (set /a cnt_listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)) ^
+else if %%a==UDP (set /a cnt_total[0][0]+=1 &set /a cnt_udp[0][0]+=1
 set /a cnt=0 &set "b=%%b" &for %%l in (%localhost% %nullhost% [::1] [::]) do set /a cnt+=1 &set "l=%%l" & ^
-if "!b:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &set /a cnt=0 
+if "!b:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &set /a cnt=0
 set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") else if !cnt!==4 (
 set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1 &set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!")))
 
+set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
+set /a interval=8 &set Title_Instant_Print=false)
+
+if %bln%==1 (for /l %%0 in (0, 1, 2) do (
+for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
+set /a %%a[%%0][2]=%%a[%%0][0]) &set bln=0)
+
+for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
+
+set /a data_len=0 &set /a cnt=0
+for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &if !%%a[0][1]! GTR 0 (
+set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
+set "data[%%b]=!state_table[%%c]! !%%a[0][0]!" & ^
+set "data[%%b]=!data[%%b]! !%%a[1][0]!_(!%%a[1][1]!|!%%a[1][2]!) !%%a[2][0]!_(!%%a[2][1]!|!%%a[2][2]!)")
+
+if !data_len! GTR 0 call :table
+
+if !output_cnt! GTR 0 (
 if "%color_text%"=="1" (
 for /l %%0 in (0, 1, !sort_len!) do if not !sort[%%0][0]!==0 (echo.
 if %%0==0 echo   !state_space!%ESC%[103;30m[LISTENING]%ESC%[0m &echo.
@@ -320,27 +343,9 @@ if %%0==5 if !sort[4][0]!==0 echo   %state_space%[UDP] &echo.
 for /l %%1 in (1, 1, !sort[%%0][0]!) do echo   !sort[%%0][%%1]!))
 for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
 
-if %bln%==1 (for /l %%0 in (0, 1, 2) do (
-for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
-set /a %%a[%%0][2]=%%a[%%0][0]) &set bln=0)
-
-for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
-if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
-else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
-
-set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
-set /a interval=8 &set Title_Instant_Print=false
-
 ) else echo. &echo ^(Empty^)
 
-set /a data_len=0 &set /a cnt=0
-for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &if !%%a[0][1]! GTR 0 (
-set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
-set "data[%%b]=!state_table[%%c]! !%%a[0][0]!" & ^
-set "data[%%b]=!data[%%b]! !%%a[1][0]!_(!%%a[1][1]!|!%%a[1][2]!) !%%a[2][0]!_(!%%a[2][1]!|!%%a[2][2]!)")
-
-if !data_len! GTR 0 (call :table
-echo. &echo   !title_print:_= ! &echo.
+if !data_len! GTR 0 (echo. &echo   !title_print:_= ! &echo.
 for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]:_= ! &set "table[%%0]="
 set "title_print=")
 
