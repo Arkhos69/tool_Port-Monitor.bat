@@ -229,15 +229,13 @@ exit /b
 
 :table_split <string_data>
 set "sp_str=%~1" &set "split_char=,"
-set /a str_len=0 &set /a sp_ary_len=0
-set "sp_start="
+set /a str_len=0 &set /a sp_ary_len=0 &set "sp_start="
 
 for %%i in (10 20 40 80 100 200 350 500) do for /l %%0 in (0, 1, %%i) do ^
 if defined sp_str (set "sp_cut="
 set "sp_=!sp_str:~0,1!" &set "sp_str=!sp_str:~1!"
 
 if "%color_text%"=="1" (
-
 if "!sp__!"==";" set "sp_start="
 if defined sp_start (if "!sp_!"==";" (
 
@@ -260,22 +258,6 @@ if defined sp_cut if defined sp_tmp set /a sp_ary_len+=1 & ^
 set "data_[!sp_ary_len!]=!sp_tmp!" &set "data_str_cnt[!sp_ary_len!]=!str_len!" & ^
 set "sp_tmp=" &set /a str_len=0
 
-) else exit /b
-
-:stat_color <string_str>
-set "str=%~1" &set "start=" &set /a f_cnt=0
-for %%i in (10 20 40 80 100 200) do for /l %%0 in (0, 1, %%i) do ^
-if defined str (set "sp_=!str:~0,1!"
-
-
-if defined sp_start (if "!sp_!"=="$" (set /a sp_len+=1 &set "sp_ary[!sp_len!]=!sp_tmp!"
-set "sp_tmp=" &set "sp_start=" &set "str=!str:~1!") else set "sp_tmp=!sp_tmp!!sp_!")
-
-
-if "!sp_!"=="+" set "sp_start=+"
-if "!sp_!"=="-" set "sp_start=-"
-
-set "str=!str:~1!"
 ) else exit /b
 
 :str_len <string_str>
