@@ -213,38 +213,12 @@ for /l %%t in (1, 1, !data_len!) do (
 set /a sl_cnt=0 &set /a interval=8
 
 if defined data[%%t] (
-for %%a in (!data[%%t]!) do (
-call :str_len "%%a"
-set /a sl_cnt+=1 &set /a str_len_ary[!sl_cnt!]=!str_len! &set data_[!sl_cnt!]=%%a)
+call :table_split "!data[%%t]!"
 
 for /l %%0 in (1, 1, !len!) do (
 if %%0 gtr 1 set /a interval=6
-set /a space_[%%0]=title_len_[%%0]-!str_len_ary[%%0]!+!interval!
+set /a space_[%%0]=title_len_[%%0]-!data_str_cnt[%%0]!+!interval!
 if not %%0==!len! for /l %%1 in (1, 1, !space_[%%0]!) do set space[%%0]= !space[%%0]!
-
-if "%color_text%"=="1" (
-
-if "!data_[%%0]:~0,1!"=="+" for /f "tokens=1* delims=_" %%a in ("!data_[%%0]!") do set "tmp=%%a" & ^
-set "data_[%%0]=%ESC%[31m!tmp:~1!%ESC%[0m_%%b" &if %%0==3 set "space[%%0]= !space[%%0]!"
-if "!data_[%%0]:~0,1!"=="-" for /f "tokens=1* delims=_" %%a in ("!data_[%%0]!") do set "tmp=%%a" & ^
-set "data_[%%0]=%ESC%[32m!tmp:~1!%ESC%[0m_%%b" &if %%0==3 set "space[%%0]= !space[%%0]!"
-
-if %%0 GTR 2 (
-if not "0!data_[%%0]:+=!"=="0!data_[%%0]!" (
-for /f "tokens=2 delims=(" %%a in ("!data_[%%0]!") do ^
-for /f "tokens=1 delims=|" %%c in ("%%a") do ^
-set "data_[%%0]=!data_[%%0]:%%c=%ESC%[41;30m%%c%ESC%[0m!"
-if %%0==3 set "space[%%0]= !space[%%0]!"
-set "data_[%%0]=!data_[%%0]:+=!")
-
-if not "0!data_[%%0]:-=!"=="0!data_[%%0]!" (
-for /f "tokens=2 delims=|" %%a in ("!data_[%%0]:)=!") do ^
-set "data_[%%0]=!data_[%%0]:%%a=%ESC%[42;30m%%a%ESC%[0m!"
-if %%0==3 set "space[%%0]= !space[%%0]!"
-set "data_[%%0]=!data_[%%0]:-=!"))
-
-)
-
 set table[%%t]=!table[%%t]!!data_[%%0]!!space[%%0]!
 for /l %%1 in (1, 1, !space_[%%0]!) do set "space[%%0]="
 set /a space_[%%0]=0 &set "data_[%%0]=")
@@ -252,6 +226,57 @@ set /a space_[%%0]=0 &set "data_[%%0]=")
 if !Title_Instant_Print!==true echo !table[%%t]!
 ) else (set data[%%T]=NULL))
 exit /b
+
+:table_split <string_data>
+set "sp_str=%~1" &set "split_char=,"
+set /a str_len=0 &set /a sp_ary_len=0
+set "sp_start="
+
+for %%i in (10 20 40 80 100 200 350 500) do for /l %%0 in (0, 1, %%i) do ^
+if defined sp_str (set "sp_cut="
+set "sp_=!sp_str:~0,1!" &set "sp_str=!sp_str:~1!"
+
+if "%color_text%"=="1" (
+
+if "!sp__!"==";" set "sp_start="
+if defined sp_start (if "!sp_!"==";" (
+
+if "!sp_start!"=="+" (set "sp_tmp=!sp_tmp!%ESC%[31m!sp_tmp2!%ESC%[0m") ^
+else if "!sp_start!"=="-" set "sp_tmp=!sp_tmp!%ESC%[32m!sp_tmp2!%ESC%[0m"
+if "!sp_start!"=="++" (set "sp_tmp=!sp_tmp!%ESC%[41;30m!sp_tmp2!%ESC%[0m") ^
+else if "!sp_start!"=="--" set "sp_tmp=!sp_tmp!%ESC%[42;30m!sp_tmp2!%ESC%[0m"
+set "sp_tmp2=") ^
+
+else set "sp_tmp2=!sp_tmp2!!sp_!" &set /a str_len+=1) else (
+if "!sp_!"=="+" (if "!sp__!"=="%split_char%" (set "sp_start=+") else set "sp_start=++")
+if "!sp_!"=="-" (if "!sp__!"=="%split_char%" (set "sp_start=-") else set "sp_start=--"))
+set "sp__=!sp_!")
+
+if "!sp_!"=="%split_char%" (set "sp_cut=1") ^
+else if not defined sp_start set "sp_tmp=!sp_tmp!!sp_!" &set /a str_len+=1
+if not defined sp_str set "sp_cut=1"
+
+if defined sp_cut if defined sp_tmp set /a sp_ary_len+=1 & ^
+set "data_[!sp_ary_len!]=!sp_tmp!" &set "data_str_cnt[!sp_ary_len!]=!str_len!" & ^
+set "sp_tmp=" &set /a str_len=0
+
+) else exit /b
+
+:stat_color <string_str>
+set "str=%~1" &set "start=" &set /a f_cnt=0
+for %%i in (10 20 40 80 100 200) do for /l %%0 in (0, 1, %%i) do ^
+if defined str (set "sp_=!str:~0,1!"
+
+
+if defined sp_start (if "!sp_!"=="$" (set /a sp_len+=1 &set "sp_ary[!sp_len!]=!sp_tmp!"
+set "sp_tmp=" &set "sp_start=" &set "str=!str:~1!") else set "sp_tmp=!sp_tmp!!sp_!")
+
+
+if "!sp_!"=="+" set "sp_start=+"
+if "!sp_!"=="-" set "sp_start=-"
+
+set "str=!str:~1!"
+) else exit /b
 
 :str_len <string_str>
 set "str=%~1" &set /a str_len=0
@@ -344,18 +369,23 @@ set /a %%a[%%0][2]=%%a[%%0][0] &set /a %%a_last[%%0]=%%a[%%0][0]) &set bln=0)
 
 title=Port Monitor - netstat Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
+if "%color_text%"=="1" (
 for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do (
 set "%%a[%%0][1]=!%%a[%%0][1]:+=!" &set "%%a[%%0][2]=!%%a[%%0][2]:-=!"
-if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=+!%%a[%%0][0]!") ^
-else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=-!%%a[%%0][0]!"
-if !%%a[%%0][0]! gtr !%%a_last[%%0]! (set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=+!%%a[%%0][0]!") ^
-else if !%%a[%%0][0]! lss !%%a_last[%%0]! set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=-!%%a[%%0][0]!")
+set "%%a[%%0][1]=!%%a[%%0][1]:;=!" &set "%%a[%%0][2]=!%%a[%%0][2]:;=!"
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=+!%%a[%%0][0]!;") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=-!%%a[%%0][0]!;"
+if !%%a[%%0][0]! gtr !%%a_last[%%0]! (set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=+!%%a[%%0][0]!;") ^
+else if !%%a[%%0][0]! lss !%%a_last[%%0]! set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=-!%%a[%%0][0]!;")) ^
+else for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do (
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!")
 
 set /a data_len=0 &set /a cnt=0
-for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &if !%%a[0][1]! GTR 0 (
-set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
-set "data[%%b]=!state_table[%%c]! !%%a[0][0]!" & ^
-set "data[%%b]=!data[%%b]! !%%a[1][0]!_(!%%a[1][1]!|!%%a[1][2]!) !%%a[2][0]!_(!%%a[2][1]!|!%%a[2][2]!)")
+for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &set /a tmp=!%%a[0][1]:;=! & ^
+if !tmp! GTR 0 (set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
+set "data[%%b]=!state_table[%%c]!,!%%a[0][0]!" & ^
+set "data[%%b]=!data[%%b]!,!%%a[1][0]! (!%%a[1][1]!|!%%a[1][2]!),!%%a[2][0]! (!%%a[2][1]!|!%%a[2][2]!)")
 
 if !data_len! GTR 0 call :table
 
