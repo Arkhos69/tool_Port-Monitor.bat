@@ -124,22 +124,27 @@ set /a interval=8 &set Title_Instant_Print=false)
 
 if %bln%==1 (for /l %%0 in (0, 1, 2) do (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
-set /a %%a[%%0][2]=%%a[%%0][0]) &set bln=0)
+set /a %%a[%%0][2]=%%a[%%0][0] &set /a %%a_last[%%0]=%%a[%%0][0]) &set bln=0)
 
 title=Port Monitor - %imgname%(%pid%) Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
+if "%color_text%"=="1" (
 for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do (
 set "%%a[%%0][1]=!%%a[%%0][1]:+=!" &set "%%a[%%0][2]=!%%a[%%0][2]:-=!"
-if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=+!%%a[%%0][0]!") ^
-else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=-!%%a[%%0][0]!"
-if !%%a[%%0][0]! gtr !%%a_last[%%0]! (set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=+!%%a[%%0][0]!") ^
-else if !%%a[%%0][0]! lss !%%a_last[%%0]! set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=-!%%a[%%0][0]!")
+set "%%a[%%0][1]=!%%a[%%0][1]:;=!" &set "%%a[%%0][2]=!%%a[%%0][2]:;=!"
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=+!%%a[%%0][0]!;") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=-!%%a[%%0][0]!;"
+if !%%a[%%0][0]! gtr !%%a_last[%%0]! (set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=+!%%a[%%0][0]!;") ^
+else if !%%a[%%0][0]! lss !%%a_last[%%0]! set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=-!%%a[%%0][0]!;")) ^
+else for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do (
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!")
 
 set /a data_len=0 &set /a cnt=0
-for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &if !%%a[0][1]! GTR 0 (
-set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
-set "data[%%b]=!state_table[%%c]! !%%a[0][0]!" & ^
-set "data[%%b]=!data[%%b]! !%%a[1][0]!_(!%%a[1][1]!|!%%a[1][2]!) !%%a[2][0]!_(!%%a[2][1]!|!%%a[2][2]!)")
+for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &set /a tmp=!%%a[0][1]:;=! & ^
+if !tmp! GTR 0 (set /a data_len+=1 &for /f "tokens=1,2" %%b in ("!data_len! !cnt!") do ^
+set "data[%%b]=!state_table[%%c]!,!%%a[0][0]!" & ^
+set "data[%%b]=!data[%%b]!,!%%a[1][0]! (!%%a[1][1]!|!%%a[1][2]!),!%%a[2][0]! (!%%a[2][1]!|!%%a[2][2]!)")
 
 if !data_len! GTR 0 call :table
 
