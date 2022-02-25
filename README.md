@@ -20,9 +20,9 @@ This tool can do:
 
 - When the value goes up or down it will display in red or green.
 
-![peak3](https://user-images.githubusercontent.com/98234168/155695886-75c8c097-ac8b-4962-bafa-64006b54621e.png)
+![up](https://user-images.githubusercontent.com/98234168/155784628-db70c940-df9b-43f5-a282-771649039484.png)
 
-![peak4](https://user-images.githubusercontent.com/98234168/155695907-f47cdb03-8d82-4101-996e-02b9d8155a9d.png)
+![down](https://user-images.githubusercontent.com/98234168/155784652-4f9ba7b0-44c3-4163-91f4-2e70698d03ea.png)
 
 ## Multiple Monitor
 
