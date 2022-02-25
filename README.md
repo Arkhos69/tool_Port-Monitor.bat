@@ -10,6 +10,18 @@ This tool can do:
 - Check "LISTENING" Port is connect to Foreign Host
 - Can be more clearly and Easily to check port.
 
+## Stat Table
+
+![peak1](https://user-images.githubusercontent.com/98234168/155694854-5e0a5a92-c17e-43d9-a3d3-8bbb6df4d89a.png)
+
+If the peak changes, it will be displayed with a red background
+
+![peak2](https://user-images.githubusercontent.com/98234168/155696430-dc7d421a-36dd-4e56-b107-22e133079cb6.png)
+
+![peak3](https://user-images.githubusercontent.com/98234168/155695886-75c8c097-ac8b-4962-bafa-64006b54621e.png)
+
+![peak4](https://user-images.githubusercontent.com/98234168/155695907-f47cdb03-8d82-4101-996e-02b9d8155a9d.png)
+
 ## Multiple Monitor
 
 If you wnat to Monitor multiple port at the same time you can try Command: /all
