@@ -12,11 +12,13 @@ This tool can do:
 
 ## Stat Table
 
+- If the peak changes, it will be displayed with a red background.
+
 ![peak1](https://user-images.githubusercontent.com/98234168/155694854-5e0a5a92-c17e-43d9-a3d3-8bbb6df4d89a.png)
 
-If the peak changes, it will be displayed with a red background
-
 ![peak2](https://user-images.githubusercontent.com/98234168/155696430-dc7d421a-36dd-4e56-b107-22e133079cb6.png)
+
+- When the value goes up or down it will display in red or green.
 
 ![peak3](https://user-images.githubusercontent.com/98234168/155695886-75c8c097-ac8b-4962-bafa-64006b54621e.png)
 
