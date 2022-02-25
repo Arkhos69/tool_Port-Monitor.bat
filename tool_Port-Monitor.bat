@@ -1,6 +1,6 @@
 @echo off &setlocal EnableDelayedExpansion
 call :setESC &call :port_list
-call :settings &goto init_first
+call :settings &goto init_RunOnce
 
 :settings
 set show_details=1
@@ -126,9 +126,14 @@ if %bln%==1 (for /l %%0 in (0, 1, 2) do (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
 set /a %%a[%%0][2]=%%a[%%0][0]) &set bln=0)
 
-for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
-if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
-else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
+title=Port Monitor - %imgname%(%pid%) Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
+
+for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do (
+set "%%a[%%0][1]=!%%a[%%0][1]:+=!" &set "%%a[%%0][2]=!%%a[%%0][2]:-=!"
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=+!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=-!%%a[%%0][0]!"
+if !%%a[%%0][0]! gtr !%%a_last[%%0]! (set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=+!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a_last[%%0]! set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=-!%%a[%%0][0]!")
 
 set /a data_len=0 &set /a cnt=0
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &if !%%a[0][1]! GTR 0 (
@@ -168,8 +173,6 @@ for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
 if !data_len! GTR 0 (echo. &echo   !title_print:_= ! &echo.
 for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]:_= ! &set "table[%%0]="
 set "title_print=")
-
-title=Port Monitor - %imgname%(%pid%) Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
 echo. &if "%without_delay%"=="1" (echo [Without-Delay Mode]) ^
 else (choice /n /c hpmndkxr /t %delay% /d r /m "[H - Help] [P - Pause] [M - Back to Menu]:"
@@ -211,16 +214,37 @@ set /a sl_cnt=0 &set /a interval=8
 
 if defined data[%%t] (
 for %%a in (!data[%%t]!) do (
-set str=%%a &set /a str_cnt=0
-for /l %%0 in (1, 1, 30) do if defined str (set str=!str:~1!
-if defined str set /a str_cnt+=1)
-set /a sl_cnt+=1
-set /a str_len[!sl_cnt!]=!str_cnt! &set data_[!sl_cnt!]=%%a)
+call :str_len "%%a"
+set /a sl_cnt+=1 &set /a str_len_ary[!sl_cnt!]=!str_len! &set data_[!sl_cnt!]=%%a)
 
 for /l %%0 in (1, 1, !len!) do (
 if %%0 gtr 1 set /a interval=6
-set /a space_[%%0]=title_len_[%%0]-!str_len[%%0]!+!interval!
+set /a space_[%%0]=title_len_[%%0]-!str_len_ary[%%0]!+!interval!
 if not %%0==!len! for /l %%1 in (1, 1, !space_[%%0]!) do set space[%%0]= !space[%%0]!
+
+if "%color_text%"=="1" (
+
+if "!data_[%%0]:~0,1!"=="+" for /f "tokens=1* delims=_" %%a in ("!data_[%%0]!") do set "tmp=%%a" & ^
+set "data_[%%0]=%ESC%[31m!tmp:~1!%ESC%[0m_%%b" &if %%0==3 set "space[%%0]= !space[%%0]!"
+if "!data_[%%0]:~0,1!"=="-" for /f "tokens=1* delims=_" %%a in ("!data_[%%0]!") do set "tmp=%%a" & ^
+set "data_[%%0]=%ESC%[32m!tmp:~1!%ESC%[0m_%%b" &if %%0==3 set "space[%%0]= !space[%%0]!"
+
+if %%0 GTR 2 (
+if not "0!data_[%%0]:+=!"=="0!data_[%%0]!" (
+for /f "tokens=2 delims=(" %%a in ("!data_[%%0]!") do ^
+for /f "tokens=1 delims=|" %%c in ("%%a") do ^
+set "data_[%%0]=!data_[%%0]:%%c=%ESC%[41;30m%%c%ESC%[0m!"
+if %%0==3 set "space[%%0]= !space[%%0]!"
+set "data_[%%0]=!data_[%%0]:+=!")
+
+if not "0!data_[%%0]:-=!"=="0!data_[%%0]!" (
+for /f "tokens=2 delims=|" %%a in ("!data_[%%0]:)=!") do ^
+set "data_[%%0]=!data_[%%0]:%%a=%ESC%[42;30m%%a%ESC%[0m!"
+if %%0==3 set "space[%%0]= !space[%%0]!"
+set "data_[%%0]=!data_[%%0]:-=!"))
+
+)
+
 set table[%%t]=!table[%%t]!!data_[%%0]!!space[%%0]!
 for /l %%1 in (1, 1, !space_[%%0]!) do set "space[%%0]="
 set /a space_[%%0]=0 &set "data_[%%0]=")
@@ -228,6 +252,11 @@ set /a space_[%%0]=0 &set "data_[%%0]=")
 if !Title_Instant_Print!==true echo !table[%%t]!
 ) else (set data[%%T]=NULL))
 exit /b
+
+:str_len <string_str>
+set "str=%~1" &set /a str_len=0
+for %%i in (10 20 40 80 100 200) do for /l %%0 in (0, 1, %%i) do ^
+if defined str (set /a str_len+=1 &set "str=!str:~1!") else exit /b
 
 :quick_loop
 set /a output_cnt=0 &set /a sort_len=2 &for /l %%0 in (0, 1, !sort_len!) do set /a sort[%%0][0]=0
@@ -311,11 +340,16 @@ set /a interval=8 &set Title_Instant_Print=false)
 
 if %bln%==1 (for /l %%0 in (0, 1, 2) do (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
-set /a %%a[%%0][2]=%%a[%%0][0]) &set bln=0)
+set /a %%a[%%0][2]=%%a[%%0][0] &set /a %%a_last[%%0]=%%a[%%0][0]) &set bln=0)
 
-for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do ^
-if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=!%%a[%%0][0]!") ^
-else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=!%%a[%%0][0]!"
+title=Port Monitor - netstat Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
+
+for /l %%0 in (0, 1, 2) do for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do (
+set "%%a[%%0][1]=!%%a[%%0][1]:+=!" &set "%%a[%%0][2]=!%%a[%%0][2]:-=!"
+if !%%a[%%0][0]! gtr !%%a[%%0][1]! (set "%%a[%%0][1]=+!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a[%%0][2]! set "%%a[%%0][2]=-!%%a[%%0][0]!"
+if !%%a[%%0][0]! gtr !%%a_last[%%0]! (set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=+!%%a[%%0][0]!") ^
+else if !%%a[%%0][0]! lss !%%a_last[%%0]! set "%%a_last[%%0]=!%%a[%%0][0]!" &set "%%a[%%0][0]=-!%%a[%%0][0]!")
 
 set /a data_len=0 &set /a cnt=0
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do set /a cnt+=1 &if !%%a[0][1]! GTR 0 (
@@ -348,8 +382,6 @@ for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
 if !data_len! GTR 0 (echo. &echo   !title_print:_= ! &echo.
 for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]:_= ! &set "table[%%0]="
 set "title_print=")
-
-title=Port Monitor - netstat Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! (LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!)]
 
 call :all_opt
 
@@ -388,9 +420,10 @@ set "filter_cmd=TCP UDP listen est handsh PID" &set "next=" &set "get="
 if defined filter (for %%a in (!filter!) do (set "tmp=%%a" &set "tmp_=!tmp:~0,1!"
 
 if defined next (
-if "!next!"=="pid" call :pid_check !tmp! &if !ERRORLEVEL!==0 set "pid=!tmp!" &set "filter_PID=1"
+if "!next!"=="pid" call :pid_check !tmp! &if !ERRORLEVEL!==0 set "filter_PID=1"
 set "next=")
 
+if "!tmp!"=="+PID" set "tmp=/pid" &set "tmp_=!tmp:~0,1!"
 if "!tmp_!"=="/" (if !tmp:~1!==pid (set "next=pid") else set "get=!tmp:~1!") else (for %%b in (!filter_cmd!) do ^
 if "!tmp:~1!"=="%%b" (if "!tmp_!"=="+" (set "filter_%%b=1") else if "!tmp_!"=="-" (set "filter_%%b=") ^
 else if "!tmp_!"=="$" set "filter_%%b=1" &for %%i in (!filter_cmd!) do if not %%i==%%b set "filter_%%i="))
@@ -513,7 +546,7 @@ set /a cnt_est[%%0][%%1]=0 &set /a cnt_udp[%%0][%%1]=0 &set /a cnt_total[%%0][%%
 set "filter_PID=" &set "pass=" &set "all_reload="
 goto main
 
-:init_first
+:init_RunOnce
 cls &echo Loading......
 title=Port Monitor &color 0e &chcp 1252 >nul
 set bln=1 &set "list_w=" &set "list_b="
@@ -528,8 +561,10 @@ set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
 set "state_space=                              "
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /i "PID"') do set "netstat_title_=%%a"
 set /a cnt=0 &for %%a in (LISTENING HANDSHAKE ESTABLISHED UDP Total) do set /a cnt+=1 &set "state_table[!cnt!]=%%a"
-set /a cnt=0 &for %%a in (103x30m 46x30m 47x30m 44x1m 102x30m) do ^
+set /a cnt=0 &for %%a in (103x30m 47x30m 44x1m 102x30m 0x0m) do ^
 set /a cnt+=1 &for %%b in (!cnt!) do set "color_table[%%b]=%%a" &set "color_table[%%b]=!color_table[%%b]:x=;!"
+set /a cnt=0 &for %%a in (93m 36m 34m 92m 0m) do ^
+set /a cnt+=1 &for %%b in (!cnt!) do set "color_table2[%%b]=%%a"
 set /a cnt=0
 if defined pass (set "pass_%pass%=1" &goto %pass%) else set pid=0 &goto main
 goto main
