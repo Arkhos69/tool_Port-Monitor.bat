@@ -248,7 +248,7 @@ set "sp_=!sp_str:~0,1!" &set "sp_str=!sp_str:~1!"
 
 if "%color_text%"=="1" (
 
-if defined sp_wait (if not "!sp_!"=="+" if not "!sp_!"=="-" set "sp_start=!sp_wait!" &set "sp_wait=")
+if defined sp_wait (if not "!sp_!"=="!sp_wait!" set "sp_start=!sp_wait!" &set "sp_wait=")
 
 if "!sp__!"==";" set "sp_start="
 if defined sp_start (if "!sp_!"==";" (
@@ -260,7 +260,7 @@ else if "!sp_start!"=="--" set "sp_tmp=!sp_tmp!%ESC%[42;30m!sp_tmp2!%ESC%[0m"
 set "sp_tmp2=") ^
 
 else set "sp_tmp2=!sp_tmp2!!sp_!" &set /a str_len+=1) else (
-if defined sp_wait (if "!sp_!"=="+" (set "sp_start=++") else if "!sp_!"=="-" set "sp_start=--"
+if defined sp_wait (if "!sp_!"=="!sp_wait!" set "sp_start=!sp_wait!!sp_wait!"
 set "sp_wait=") else (if "!sp_!"=="+" (set "sp_wait=+") else if "!sp_!"=="-" set "sp_wait=-"))
 set "sp__=!sp_!")
 
