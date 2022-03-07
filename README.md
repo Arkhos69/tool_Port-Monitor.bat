@@ -24,6 +24,20 @@ This tool can do:
 
 ![down](https://user-images.githubusercontent.com/98234168/155784652-4f9ba7b0-44c3-4163-91f4-2e70698d03ea.png)
 
+## Filter and Search
+
+![filter_search_intro](https://user-images.githubusercontent.com/98234168/157106231-cb98e891-b82b-44ba-8ebf-dca83aa7c42a.png)
+
+---
+![filter_cmd](https://user-images.githubusercontent.com/98234168/157106251-170344a9-6c92-42ab-bdcf-03faa0c8fb8f.png)
+
+![netstat_search](https://user-images.githubusercontent.com/98234168/157106273-e9dd6497-96bf-47e8-8dc1-e45e18f3a02f.png)
+
+---
+![filter_cmd_v6](https://user-images.githubusercontent.com/98234168/157106385-8312c14d-5b65-4db1-a262-af65c3810834.png)
+
+![netstat_search_v6](https://user-images.githubusercontent.com/98234168/157106395-d79a40eb-32a8-4b53-99f4-e66f972c4c90.png)
+
 ## Multiple Monitor
 
 If you wnat to Monitor multiple port at the same time you can try Command: /all
