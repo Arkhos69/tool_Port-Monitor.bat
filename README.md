@@ -5,6 +5,7 @@
 This tool can do:
 
 - Sort State type
+- Search match Port, PID, IP Address
 - Show Port info (ex. :443=https, localhost)
 - Count Ports and Show Dynamic stat table
 - Check "LISTENING" Port is connect to Foreign Host
