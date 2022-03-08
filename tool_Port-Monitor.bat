@@ -436,8 +436,6 @@ set "title_print=")
 if "%debug_running_time%"=="1" echo %time%
 call :all_opt
 
-if defined filter_PID for %%a in (!filter_PID!) do ^
-tasklist /fi "pid eq %%a" | findstr "%%a" 2>&1>nul || set "filter_PID=!filter_PID:%%a=!"
 goto all
 
 :all_opt
@@ -498,11 +496,11 @@ if !index!==1 (if %%a==TCP (if %%e==%%f set "get=1" &set "raw=!raw:  %%e=  {%%e}
 else if %%a==UDP (if %%d==%%f set "get=1" &set "raw=!raw:  %%d=  {%%d}!"))
 
 if !index!==2 set "b=%%b" &set "c=%%c" & ^
-if "!b:~0,1!"=="[" (for /f "tokens=2 delims=]" %%i in ("!b::=!") do if %%i==%%f set "get=1" &set "raw=!raw::%%i=:{%%i}!") ^
+if "!b:~0,1!"=="[" (for /f "tokens=2 delims=]" %%i in ("!b::=!") do if %%i==%%f set "get=1" &set "raw=!raw::%%i =:{%%i} !") ^
 else if "!c:~0,1!"=="[" (
-for /f "tokens=2 delims=]" %%i in ("!c::=!") do if %%i==%%f set "get=1" &set "raw=!raw::%%i=:{%%i}!") ^
+for /f "tokens=2 delims=]" %%i in ("!c::=!") do if %%i==%%f set "get=1" &set "raw=!raw::%%i =:{%%i} !") ^
 else for /f "tokens=2,4 delims=:" %%i in ("%%b:%%c") do ^
-if %%i==%%f (set "get=1" &set "raw=!raw::%%i=:{%%i}!") else if %%j==%%f set "get=1" &set "raw=!raw::%%j=:{%%j}!"
+if %%i==%%f (set "get=1" &set "raw=!raw::%%i =:{%%i} !") else if %%j==%%f set "get=1" &set "raw=!raw::%%j =:{%%j} !"
 
 if !index!==3 set "b=%%b" &set "c=%%c" & ^
 if "!b:~0,1!"=="[" (for /f "tokens=1 delims=]" %%i in ("%%b") do if %%i]==%%f set "get=1" &set "raw=!raw:%%i]={%%i]}!") ^
@@ -560,8 +558,7 @@ for %%a in (!filter!) do (set "cont=%%a" &set "cont_=!cont:~0,1!"
 
 if defined fl_start (
 for %%n in (%fl_prefix%) do if !cont_!==%%n set "fl_start="
-if "!fl_start!"=="pid" call :pid_check !cont! &if !ERRORLEVEL!==0 set "filter_pid=!pid! !filter_PID!"
-for %%i in (port ip) do if "!fl_start!"=="%%i" (if defined filter_%%i (
+for %%i in (pid port ip) do if "!fl_start!"=="%%i" (if defined filter_%%i (
 if "0!filter_%%i:%%a=!"=="0!filter_%%i!" set "filter_%%i=!filter_%%i! %%a") ^
 else set "filter_%%i=!filter_%%i! %%a")
 if "!fl_start!"=="cls" set "fl_wait=" &for %%i in (%fl_search_check%) do if %%a==%%i set "filter_%%a=")
