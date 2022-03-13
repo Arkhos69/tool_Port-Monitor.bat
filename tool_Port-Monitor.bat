@@ -1,6 +1,5 @@
 @echo off &setlocal EnableDelayedExpansion
-call :setESC &call :port_list
-call :settings &goto init_RunOnce
+goto init_RunOnce
 
 :settings
 set show_details=1
@@ -13,6 +12,7 @@ set enter_mode=img
 REM dev.
 set "debug_print_raw=0"
 set "debug_running_time=0"
+set "debug_starting_echo=0"
 set "state_listen=LISTENING"
 set "state_handshake=HANDSHAKE"
 set "state_est=ESTABLISHED"
@@ -21,7 +21,7 @@ set "localhost=127.0.0.1"
 set "nullhost=0.0.0.0"
 set "localhost_IPv6=[::1]"
 set "nullhost_IPv6=[::]"
-EXIT /B
+echo [ok] settings &EXIT /B
 
 :port_list
 REM ***** Can be expansion *****
@@ -35,7 +35,7 @@ set "port_table[1][1]=socks"
 REM port_list[0][0]=20 port_list[0][1]=ftp ... port_list[4][0]=1080 port_list[4][1]=socks
 set /a port_len=-1 &for /l %%0 in (0, 1, %port_table_index%) do set /a tmp=!port_len! &for /l %%1 in (0, 1, 1) do ^
 set /a port_len=!tmp! &for %%a in (!port_table[%%0][%%1]!) do set /a port_len+=1 &set "port_list[!port_len!][%%1]=%%a"
-set "tmp=" &exit /b
+set "tmp=" &echo [ok] port_list &exit /b
 
 :main
 cls
@@ -132,9 +132,7 @@ set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &set /a cnt=0
 set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") ^
 else if !cnt!==4 (set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1
 set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!")))
-
-set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
-set /a interval=8 &set Title_Instant_Print=false)
+)
 
 if %bln%==1 (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do for /l %%0 in (0, 1, 2) do (
@@ -195,9 +193,8 @@ for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
 
 ) else echo. &echo ^(Empty^)
 
-if !data_len! GTR 0 (echo. &echo   !title_print:_= ! &echo.
+if !data_len! GTR 0 echo. &echo   !title_print! &echo. & ^
 for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]! &set "table[%%0]="
-set "title_print=")
 
 echo. &if "%without_delay%"=="1" (echo [Without-Delay Mode]) ^
 else (choice /n /c hpmndkxr /t %delay% /d r /m "[H - Help] [P - Pause] [M - Back to Menu]:"
@@ -220,17 +217,22 @@ if !ERRORLEVEL!==7 exit)
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 goto loop
 
-:table
+:table_title
+set "title_print="
+set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
+set /a interval=8 &set Title_Instant_Print=false
 for /l %%0 in (1, 1, !interval!) do set interval_= !interval_!
 for %%a in (!title!) do set "title_print=!title_print!%%a!interval_!" &set "interval_=!interval_:~0,6!"
-set "interval_="
 for %%a in (!title!) do (set str=%%a &set /a str_cnt=0
 for /l %%0 in (1, 1, 35) do if defined str (set str=!str:~1!
 if defined str set /a str_cnt+=1)
 set title_len=!title_len! !str_cnt!)
 set title_len=!title_len:~1!
 set /a len=0 &for %%a in (!title_len!) do set /a len+=1 &set /a title_len_[!len!]=%%a
-set "title_len="
+set "title_len=" &set "interval_=" &set "title_print=!title_print:_= !"
+echo [ok] table_title &exit /b
+
+:table
 if !data_len! geq 50 set Title_Instant_Print=true
 if !Title_Instant_Print!==true echo !title_print!
 
@@ -290,11 +292,12 @@ set "sp_get=" &set /a str_len=0
 ) else exit /b
 goto table_split_loop
 
-:str_len <string_str>
+:str_len <string_str> <int_return>
 set "str=%~1" &set /a str_len=0
 :str_len_loop
 for %%i in (10 20 40 80 100) do for /l %%0 in (0, 1, %%i) do ^
-if defined str (set /a str_len+=1 &set "str=!str:~1!") else exit /b
+if defined str (set /a str_len+=1 &set "str=!str:~1!") ^
+else set "%~2=!str_len!" &exit /b
 goto str_len_loop
 
 :quick_loop
@@ -367,9 +370,7 @@ set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &set /a cnt=0
 set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") ^
 else if !cnt!==4 (set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1
 set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!")))
-
-set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
-set /a interval=8 &set Title_Instant_Print=false)
+)
 
 if %bln%==1 (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do for /l %%0 in (0, 1, 2) do (
@@ -429,9 +430,8 @@ for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
 
 ) else echo. &echo ^(Empty^)
 
-if !data_len! GTR 0 (echo. &echo   !title_print:_= ! &echo.
+if !data_len! GTR 0 echo. &echo   !title_print! &echo. & ^
 for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]! &set "table[%%0]="
-set "title_print=")
 
 if "%debug_running_time%"=="1" echo %time%
 call :all_opt
@@ -525,7 +525,7 @@ set "filter_check=TCP UDP listen est handsh"
 set "fl_search_check=pid port ip"
 set "fl_start_check=pid port ip cls"
 set "fl_prefix=+ - / @"
-exit /b
+echo [ok] filter_settings &exit /b
 
 :filter_set
 echo.
@@ -693,8 +693,10 @@ set "filter_PID=" &set "pass=" &set "all_reload="
 goto main
 
 :init_RunOnce
-cls &echo Loading......
 title=Port Monitor &color 0e &chcp 1252 >nul
+echo Loading......
+call :setESC &call :settings
+call :port_list &call :filter_settings &call :table_title
 set bln=1 &set "list_w=" &set "list_b="
 for /l %%0 in (0, 1, 2) do for /l %%1 in (0, 1, 2) do ^
 set /a cnt_listen[%%0][%%1]=0 &set /a cnt_handsh[%%0][%%1]=0 & ^
@@ -713,7 +715,7 @@ set /a cnt+=1 &for %%b in (!cnt!) do set "color_table[%%b]=%%a" &set "color_tabl
 set /a cnt=0 &for %%a in (93m 36m 34m 92m 0m) do ^
 set /a cnt+=1 &for %%b in (!cnt!) do set "color_table2[%%b]=%%a"
 set /a cnt=0
-call :filter_settings
+if "%debug_starting_echo%"=="1" pause
 if defined pass (set "pass_%pass%=1" &goto %pass%) else set pid=0 &goto main
 goto main
 
