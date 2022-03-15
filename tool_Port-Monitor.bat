@@ -338,7 +338,9 @@ set /a sort_len=5 &for /l %%0 in (0, 1, !sort_len!) do set /a sort[%%0][0]=0
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do for /l %%0 in (0, 1, 2) do ^
 set /a %%a[%%0][0]=0
 
-call :filter_get
+if not defined filter_switch (set /a output_cnt=0
+for /f "tokens=*" %%a in ('netstat -ano') do set /a output_cnt+=1 &set output[!output_cnt!]=%%a
+) else call :filter_get
 
 if !output_cnt! GTR 0 (
 for /l %%0 in (1, 1, !output_cnt!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
@@ -587,6 +589,9 @@ set "get=")
 )
 if "!fl_wait!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
 set "filter_TCP=1" &set "filter_UDP=1" &set "filter_pid=" &set "filter_port=" &set "filter_ip="
+
+set "filter_switch=" &for %%a in (%filter_check% %fl_search_check%) do ^
+if defined filter_%%a set "filter_switch=1"
 
 set "cont=" &set "cont_=" &set "next=" &set "get=" &set "fl_wait="
 set "all_reload=1")
