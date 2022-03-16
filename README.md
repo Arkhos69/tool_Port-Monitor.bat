@@ -27,7 +27,16 @@ This tool can do:
 
 ## Filter and Search
 
-![filter_search_intro](https://user-images.githubusercontent.com/98234168/157106231-cb98e891-b82b-44ba-8ebf-dca83aa7c42a.png)
+![filter_intor](https://user-images.githubusercontent.com/98234168/158621418-8240bb7d-13ac-42ec-a6c9-923a5df7a38d.png)
+
+---
+![wildcard_char1](https://user-images.githubusercontent.com/98234168/158620968-75155a8b-2da7-4643-9b99-2d4135c8d187.png)
+
+![wildcard_char2](https://user-images.githubusercontent.com/98234168/158620994-5be33dd1-3db9-47ce-b925-b7f72985e8e8.png)
+
+![wildcard_char4](https://user-images.githubusercontent.com/98234168/158621078-2823d4f1-4473-4f7e-942f-8d5315ed96ba.png)
+
+![wildcard_char3](https://user-images.githubusercontent.com/98234168/158621049-3dc558a1-d26f-45c6-9e7f-adac606be174.png)
 
 ---
 ![filter_cmd](https://user-images.githubusercontent.com/98234168/157106251-170344a9-6c92-42ab-bdcf-03faa0c8fb8f.png)
