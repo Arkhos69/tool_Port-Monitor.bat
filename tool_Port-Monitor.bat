@@ -474,7 +474,9 @@ for %%a in (TCP UDP listen est handsh) do if defined filter_%%a set "filter_echo
 echo Filter:[!filter_echo:~2!]
 
 for %%a in (%fl_search_check%) do if defined filter_%%a ^
-for %%b in (!filter_%%a!) do set "search_echo[%%a]=!search_echo[%%a]!, %%b"
+for %%b in (!filter_%%a!) do if "%%a"=="ip" (set "b=%%b"
+set "b=!b:_=*!" &set "search_echo[%%a]=!search_echo[%%a]!, !b!") ^
+else set "search_echo[%%a]=!search_echo[%%a]!, %%b"
 
 for %%a in (%fl_search_check%) do if defined search_echo[%%a] echo Search %%a:[!search_echo[%%a]:~2!]
 
@@ -507,8 +509,15 @@ if %%i==%%f (set "get=1" &set "raw=!raw::%%i =:{%%i} !") else if %%j==%%f set "g
 if !index!==3 set "b=%%b" &set "c=%%c" & ^
 if "!b:~0,1!"=="[" (for /f "tokens=1 delims=]" %%i in ("%%b") do if %%i]==%%f set "get=1" &set "raw=!raw:%%i]={%%i]}!") ^
 else if "!c:~0,1!"=="[" (for /f "tokens=1 delims=]" %%i in ("%%c") do if %%i]==%%f set "get=1" &set "raw=!raw:%%i]={%%i]}!") ^
-else for /f "tokens=1,3 delims=:" %%i in ("%%b:%%c") do ^
-if %%i==%%f (set "get=1" &set "raw=!raw:%%i={%%i}!") else if %%j==%%f set "get=1" &set "raw=!raw:%%j={%%j}!"
+else (set "f=%%f" &if not "0!f:_=!"=="0!f!" (for %%x in (b c) do for /f "delims=:" %%y in ("!%%x!") do ^
+for /f "tokens=1-8 delims=." %%i in ("%%y.%%f") do (set /a checkvar=0
+if "%%i"=="%%m" (set /a checkvar+=1) else if "%%m"=="_" set /a checkvar+=1
+if "%%j"=="%%n" (set /a checkvar+=1) else if "%%n"=="_" set /a checkvar+=1
+if "%%k"=="%%o" (set /a checkvar+=1) else if "%%o"=="_" set /a checkvar+=1
+if "%%l"=="%%p" (set /a checkvar+=1) else if "%%p"=="_" set /a checkvar+=1
+if !checkvar!==4 set "get=1" &set "raw=!raw: %%y= {%%y}!")
+) else for /f "tokens=1,3 delims=:" %%i in ("%%b:%%c") do ^
+if %%i==%%f (set "get=1" &set "raw=!raw:%%i={%%i}!") else if %%j==%%f set "get=1" &set "raw=!raw:%%j={%%j}!")
 )))
 
 if not defined fl_match set "get=1"
@@ -551,11 +560,13 @@ echo e.g. -UDP
 echo e.g. -UDP -listen +est
 echo e.g. -TCP +UDP /pid 123
 echo e.g. /pid 4232 4 812 /ip 172.217.160.78 127.0.0.1 /port 443 80 -listen
+echo e.g. /ip 127.*.*.* 192.168.*.*
 echo ===================================================================================
 echo.)
 set "filter=" &set /p "filter=Set Filter:"
 
-if defined filter (
+if defined filter (call :str_replace "filter" "!filter!" "*" "_"
+
 for %%a in (!filter!) do (set "cont=%%a" &set "cont_=!cont:~0,1!"
 
 if defined fl_start (
@@ -596,6 +607,16 @@ if defined filter_%%a set "filter_switch=1"
 set "cont=" &set "cont_=" &set "next=" &set "get=" &set "fl_wait="
 set "all_reload=1")
 exit /b
+
+:str_replace <return> <str> <from> <to>
+set "rp_get=" &set "return_=%~1" &set "str_=%~2" &set "form_=%~3" &set "to_=%~4"
+for %%a in (str_ form_ return_) do if not defined %%a exit /b 1
+:str_replace_loop
+for %%i in (20 30 50 100) do for /l %%0 in (0, 1, %%i) do ^
+if defined str_ (set "sp_=!str_:~0,1!" &set "str_=!str_:~1!"
+if "!sp_!"=="!form_!" (if defined to_ set "rp_get=!rp_get!!to_!") else set "rp_get=!rp_get!!sp_!"
+) else set "%~1=!rp_get!" &exit /b 0
+goto str_replace_loop
 
 :pid_check <PID>
 set "check_pid=%~1" &if defined check_pid (
@@ -702,15 +723,12 @@ title=Port Monitor &color 0e &chcp 1252 >nul
 echo Loading......
 call :setESC &call :settings
 call :port_list &call :filter_settings &call :table_title
-set bln=1 &set "list_w=" &set "list_b="
-for /l %%0 in (0, 1, 2) do for /l %%1 in (0, 1, 2) do ^
-set /a cnt_listen[%%0][%%1]=0 &set /a cnt_handsh[%%0][%%1]=0 & ^
-set /a cnt_est[%%0][%%1]=0 &set /a cnt_udp[%%0][%%1]=0 &set /a cnt_total[%%0][%%1]=0
-set /a init_cnt=0 &for %%a in (1 1 0 img 1) do set /a init_cnt+=1 &set "default[!init_cnt!]=%%a"
-set /a init_cnt=0 &for %%a in (show_details color_text quick_mode enter_mode without_delay) do ^
-set /a init_cnt+=1 &if not defined %%a for %%i in (!init_cnt!) do set "%%a=!default[%%i]!"
-set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1"
-set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID="
+call :init_filter &call :default_set &call :set_static_var &call :init_stats
+if "%debug_starting_echo%"=="1" pause
+if defined pass (set "pass_%pass%=1" &goto %pass%) else set pid=0 &goto main
+goto main
+
+:set_static_var
 set "state_space=                              "
 for /f "tokens=*" %%a in ('netstat -ano ^| findstr /i "PID"') do set "netstat_title_=%%a"
 set /a cnt=0 &for %%a in (%state_listen% %state_handshake% %state_est% UDP Total) do ^
@@ -720,9 +738,25 @@ set /a cnt+=1 &for %%b in (!cnt!) do set "color_table[%%b]=%%a" &set "color_tabl
 set /a cnt=0 &for %%a in (93m 36m 34m 92m 0m) do ^
 set /a cnt+=1 &for %%b in (!cnt!) do set "color_table2[%%b]=%%a"
 set /a cnt=0
-if "%debug_starting_echo%"=="1" pause
-if defined pass (set "pass_%pass%=1" &goto %pass%) else set pid=0 &goto main
-goto main
+echo [ok] default_set &exit /b
+:default_set
+set bln=1 &set "list_w=" &set "list_b="
+set /a cnt=0 &for %%a in (1 1 0 img 1) do set /a cnt+=1 &set "default[!cnt!]=%%a"
+set /a cnt=0 &for %%a in (show_details color_text quick_mode enter_mode without_delay) do ^
+set /a cnt+=1 &if not defined %%a for %%i in (!cnt!) do set "%%a=!default[%%i]!"
+set /a cnt=0
+echo [ok] default_set &exit /b
+:init_filter
+set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1"
+set "filter_TCP=1" &set "filter_UDP=1" &set "filter_PID=" &set "filter_switch="
+set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
+set "filter_TCP=1" &set "filter_UDP=1" &set "filter_pid=" &set "filter_port=" &set "filter_ip="
+echo [ok] init_filter &exit /b
+:init_stats
+for /l %%0 in (0, 1, 2) do for /l %%1 in (0, 1, 2) do ^
+set /a cnt_listen[%%0][%%1]=0 &set /a cnt_handsh[%%0][%%1]=0 & ^
+set /a cnt_est[%%0][%%1]=0 &set /a cnt_udp[%%0][%%1]=0 &set /a cnt_total[%%0][%%1]=0
+echo [ok] init_stats &exit /b
 
 REM Cool Stuff win10colors.cmd by Michele Locati (github/mlocati). Respect!!!
 :setESC
