@@ -218,17 +218,14 @@ tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
 goto loop
 
 :table_title
-set "title_print="
+set "title_print=" &set /a len=0
 set "title=State Total Local_Host(max|min) Foreign_Host(max|min)"
 set /a interval=8 &set Title_Instant_Print=false
-for /l %%0 in (1, 1, !interval!) do set interval_= !interval_!
+for /l %%0 in (1, 1, !interval!) do set "interval_= !interval_!"
 for %%a in (!title!) do set "title_print=!title_print!%%a!interval_!" &set "interval_=!interval_:~0,6!"
-for %%a in (!title!) do (set str=%%a &set /a str_cnt=0
-for /l %%0 in (1, 1, 35) do if defined str (set str=!str:~1!
-if defined str set /a str_cnt+=1)
-set title_len=!title_len! !str_cnt!)
-set title_len=!title_len:~1!
-set /a len=0 &for %%a in (!title_len!) do set /a len+=1 &set /a title_len_[!len!]=%%a
+for %%a in (!title!) do (set "str=%%a" &set /a str_cnt=0
+for /l %%0 in (0, 1, 25) do if defined str set "str=!str:~1!" &set /a str_cnt+=1
+set /a len+=1 &set /a title_len[!len!]=!str_cnt!)
 set "title_len=" &set "interval_=" &set "title_print=!title_print:_= !"
 echo [ok] table_title &exit /b
 
@@ -244,7 +241,7 @@ call :table_split "!data[%%t]!"
 
 for /l %%0 in (1, 1, !len!) do (
 if %%0 gtr 1 set /a interval=6
-set /a space_[%%0]=title_len_[%%0]-!data_str_cnt[%%0]!+!interval!
+set /a space_[%%0]=!title_len[%%0]!-!data_str_cnt[%%0]!+!interval!
 if not %%0==!len! for /l %%1 in (1, 1, !space_[%%0]!) do set space[%%0]= !space[%%0]!
 set table[%%t]=!table[%%t]!!data_[%%0]!!space[%%0]!
 for /l %%1 in (1, 1, !space_[%%0]!) do set "space[%%0]="
