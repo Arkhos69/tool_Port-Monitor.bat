@@ -5,13 +5,13 @@
 This tool can do:
 
 - Sort State type
-- Search match Port, PID, IP Address
-- Count Ports and Show Dynamic stat table
+- [Multiple Search Port, PID, IP Address](#filters)
+- [Count Ports and Show Dynamic stat table](#Stat_Table)
 - Show Port info (ex. :443=https, localhost)
 - Check "LISTENING" Port is connect to Foreign Host
 - Can be more clearly and Easily to check port.
 
-## Stat Table
+<h2 id=Stat_Table>Stat Table</h2>
 
 - If the peak changes, it will be displayed with a red background.
 
@@ -25,7 +25,7 @@ This tool can do:
 
 ![down](https://user-images.githubusercontent.com/98234168/155784652-4f9ba7b0-44c3-4163-91f4-2e70698d03ea.png)
 
-## Filter and Search
+<h2 id=filters>Filter and Search</h2>
 
 ![filter_intor](https://user-images.githubusercontent.com/98234168/158621418-8240bb7d-13ac-42ec-a6c9-923a5df7a38d.png)
 
