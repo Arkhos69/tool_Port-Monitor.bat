@@ -6,8 +6,8 @@ This tool can do:
 
 - Sort State type
 - Search match Port, PID, IP Address
-- Show Port info (ex. :443=https, localhost)
 - Count Ports and Show Dynamic stat table
+- Show Port info (ex. :443=https, localhost)
 - Check "LISTENING" Port is connect to Foreign Host
 - Can be more clearly and Easily to check port.
 
@@ -30,13 +30,9 @@ This tool can do:
 ![filter_intor](https://user-images.githubusercontent.com/98234168/158621418-8240bb7d-13ac-42ec-a6c9-923a5df7a38d.png)
 
 ---
-![wildcard_char1](https://user-images.githubusercontent.com/98234168/158620968-75155a8b-2da7-4643-9b99-2d4135c8d187.png)
+![search1](https://user-images.githubusercontent.com/98234168/159009845-8aee3d19-3ce7-4c11-8d51-44cf791a32f4.png)
 
-![wildcard_char2](https://user-images.githubusercontent.com/98234168/158620994-5be33dd1-3db9-47ce-b925-b7f72985e8e8.png)
-
-![wildcard_char4](https://user-images.githubusercontent.com/98234168/158621078-2823d4f1-4473-4f7e-942f-8d5315ed96ba.png)
-
-![wildcard_char3](https://user-images.githubusercontent.com/98234168/158621049-3dc558a1-d26f-45c6-9e7f-adac606be174.png)
+![search2](https://user-images.githubusercontent.com/98234168/159009912-0c3058d4-7741-4ac0-b524-5b445e131beb.png)
 
 ---
 ![filter_cmd](https://user-images.githubusercontent.com/98234168/157106251-170344a9-6c92-42ab-bdcf-03faa0c8fb8f.png)
