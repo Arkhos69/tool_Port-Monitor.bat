@@ -2,6 +2,7 @@
 goto init_RunOnce
 
 :settings
+REM color_text only work on Windows 10
 set show_details=1
 set show_filter_intro=1
 set color_text=1
@@ -330,46 +331,88 @@ if "%debug_running_time%"=="1" echo %time%
 
 call :filter_echo
 
+set /a output_cnt=0
+for /f "tokens=*" %%a in ('netstat -ano') do set /a output_cnt+=1 &set output[!output_cnt!]=%%a
+
+call :sort
+
+if "%debug_running_time%"=="1" echo %time%
+call :all_opt
+for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
+
+goto all
+
+:all_opt
+echo. &set "all_reload="
+choice /n /c hmfnkxr /m "[H - Help] [M - Back to Menu] [R - Reload] [F - Set Filter]:"
+if %ERRORLEVEL%==1 (echo.
+echo [H - Help]
+echo [M - Back to Menu]
+echo [R - Reload]
+echo [F - Set Filter]
+echo [N - Open a new cmd window with Single Monitor mode]
+echo [K - Kill Process]
+echo [X - Exit])
+if %ERRORLEVEL%==2 goto init
+if %ERRORLEVEL%==3 call :filter_set & ^
+if defined filter (
+echo ===================================================================================
+call :filter_echo &call :sort)
+
+if %ERRORLEVEL%==4 echo. &set /p "pid_=[New Monitor] Please enter The PID:" & ^
+call :pid_check !pid_! &if !ERRORLEVEL!==0 set "pass=start" &start %~f0
+
+if %ERRORLEVEL%==5 echo. &set /p "pid_=[Kill Process] Please enter The PID:" & ^
+call :pid_check !pid_! &if !ERRORLEVEL!==0 taskkill /f /t /pid !pid!
+set "pid_="
+
+IF %ERRORLEVEL%==6 exit
+if %ERRORLEVEL%==7 set "all_reload=1"
+
+if defined all_reload exit /b
+goto all_opt
+
+:sort
 set /a sort_len=5 &for /l %%0 in (0, 1, !sort_len!) do set /a sort[%%0][0]=0
 
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do for /l %%0 in (0, 1, 2) do ^
 set /a %%a[%%0][0]=0
 
-if not defined filter_switch (set /a output_cnt=0
-for /f "tokens=*" %%a in ('netstat -ano') do set /a output_cnt+=1 &set output[!output_cnt!]=%%a
-) else call :filter_get
+if not defined filter_switch (set "output_switch=output"
+) else set "output_switch=filter_out" &call :filter_get
 
-if !output_cnt! GTR 0 (
-for /l %%0 in (1, 1, !output_cnt!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
+for %%o in (!output_switch!) do if !%%o_cnt! GTR 0 (
+for /l %%0 in (1, 1, !%%o_cnt!) do for /f "tokens=1-5" %%a in ("!%%o[%%0]!") do (set "raw=!%%o[%%0]!"
 
-if "%show_details%"=="1" (set "bool="
+if "%show_details%"=="0" (set "bool="
 for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_len%) do ^
 if %%p==!port_list[%%1][0]! (set "bool=1") else (if %%q==!port_list[%%1][0]! set "bool=1") & ^
 if defined bool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][1]!) do ^
-set "output[%%0]=!output[%%0]::%%i=:%%j!")
+set "raw=!raw::%%i=:%%j!")
 
 if %%a==TCP (set /a cnt_total[0][0]+=1 &set /a cnt=0 &set "c=%%c" &set "c=!c:{=!" &set "c=!c:}=!"
 for %%l in (%localhost% %nullhost% %localhost_IPv6% %nullhost_IPv6%) do ^
 set /a cnt+=1 &set "l=%%l" &if "!c:~0,4!"=="!l:~0,4!" (set /a cnt_total[1][0]+=1 &set /a cnt=0
 if %%d==%state_listen% (set /a cnt_listen[0][0]+=1 &set /a cnt_listen[1][0]+=1 & ^
-set /a sort[0][0]+=1 &set "sort[0][!sort[0][0]!]=!output[%%0]:%localhost%=localhost!") ^
+set /a sort[0][0]+=1 &set "sort[0][!sort[0][0]!]=!raw:%localhost%=localhost!") ^
 else if %%d==%state_est% (set /a cnt_est[0][0]+=1 &set /a cnt_est[1][0]+=1 & ^
-set /a sort[2][0]+=1 &set "sort[2][!sort[2][0]!]=!output[%%0]:%localhost%=localhost!")) ^
+set /a sort[2][0]+=1 &set "sort[2][!sort[2][0]!]=!raw:%localhost%=localhost!")) ^
 else if !cnt!==4 (set /a cnt_total[2][0]+=1
 if %%d==%state_est% (set /a cnt_est[0][0]+=1 &set /a cnt_est[2][0]+=1 & ^
-set /a sort[3][0]+=1 &set "sort[3][!sort[3][0]!]=!output[%%0]!") ^
+set /a sort[3][0]+=1 &set "sort[3][!sort[3][0]!]=!raw!") ^
 else if %%d NEQ %state_listen% (set /a cnt_handsh[0][0]+=1 &set /a cnt_handsh[2][0]+=1
-set /a sort[1][0]+=1 &set "sort[1][!sort[1][0]!]=!output[%%0]!") ^
-else if "%list_w%"=="%pid%" (set /a cnt_listen[2][0]+=1) else set "kill_port=!output[%%0]!" &goto kill)) ^
+set /a sort[1][0]+=1 &set "sort[1][!sort[1][0]!]=!raw!") ^
+else if "%list_w%"=="%pid%" (set /a cnt_listen[2][0]+=1) else set "kill_port=!raw!" &goto kill)) ^
 else if %%a==UDP (set /a cnt_total[0][0]+=1 &set /a cnt_udp[0][0]+=1
 set /a cnt=0 &set "b=%%b" &set "b=!b:{=!" &set "b=!b:}=!"
 for %%l in (%localhost% %nullhost% %localhost_IPv6% %nullhost_IPv6%) do ^
 set /a cnt+=1 &set "l=%%l" &if "!b:~0,4!"=="!l:~0,4!" (
 set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &set /a cnt=0
-set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!output[%%0]:%localhost%=localhost!") ^
+set /a sort[4][0]+=1 &set "sort[4][!sort[4][0]!]=!raw:%localhost%=localhost!") ^
 else if !cnt!==4 (set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1
-set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!output[%%0]!")))
-)
+set /a sort[5][0]+=1 &set "sort[5][!sort[5][0]!]=!raw!"))
+if "%debug_print_raw%"=="1" echo !raw!)
+if "%debug_print_raw%"=="1" pause)
 
 if %bln%==1 (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do for /l %%0 in (0, 1, 2) do (
@@ -402,9 +445,9 @@ set "data[%%b]=!data[%%b]!,!%%a[1][0]! (!%%a[1][1]!|!%%a[1][2]!),!%%a[2][0]! (!%
 
 if !data_len! GTR 0 call :table
 
-if !output_cnt! GTR 0 (
-if "%color_text%"=="1" (
+for %%o in (!output_switch!) do if !%%o_cnt! GTR 0 (
 
+if "%color_text%"=="1" (
 for /l %%0 in (0, 1, !sort_len!) do if not !sort[%%0][0]!==0 (echo.
 if %%0==0 echo   !state_space!%ESC%[103;30m[%state_listen%]%ESC%[0m &echo.
 if %%0==1 echo   !state_space!%ESC%[46;30m[%state_handshake%]%ESC%[0m &echo.
@@ -416,7 +459,8 @@ for /l %%1 in (1, 1, !sort[%%0][0]!) do (
 if defined fl_match if "%color_text%"=="1" ^
 set "sort[%%0][%%1]=!sort[%%0][%%1]:{=%ESC%[47;30m!" & ^
 set "sort[%%0][%%1]=!sort[%%0][%%1]:}=%ESC%[0m!"
-echo   !sort[%%0][%%1]!))) ^
+echo   !sort[%%0][%%1]! &set "sort[%%0][%%1]="))) ^
+
 else (for /l %%0 in (0, 1, !sort_len!) do if not !sort[%%0][0]!==0 (echo.
 if %%0==0 echo   %state_space%[%state_listen%] &echo.
 if %%0==1 echo   %state_space%[%state_handshake%] &echo.
@@ -424,45 +468,13 @@ if %%0==2 echo   %state_space%[%state_est%] &echo.
 if %%0==3 if !sort[2][0]!==0 echo   %state_space%[%state_est%] &echo.
 if %%0==4 echo   %state_space%[UDP] &echo.
 if %%0==5 if !sort[4][0]!==0 echo   %state_space%[UDP] &echo.
-for /l %%1 in (1, 1, !sort[%%0][0]!) do echo   !sort[%%0][%%1]!))
-for /l %%0 in (1, 1, !output_cnt!) do set "output[!output_cnt!]="
+for /l %%1 in (1, 1, !sort[%%0][0]!) do echo   !sort[%%0][%%1]! &set "sort[%%0][%%1]="))
 
 ) else echo. &echo ^(Empty^)
 
 if !data_len! GTR 0 echo. &echo   !title_print! &echo. & ^
 for /l %%0 in (1, 1, !data_len!) do echo   !table[%%0]! &set "table[%%0]="
-
-if "%debug_running_time%"=="1" echo %time%
-call :all_opt
-
-goto all
-
-:all_opt
-echo. &set "all_reload="
-choice /n /c hmfnkxr /m "[H - Help] [M - Back to Menu] [R - Reload] [F - Set Filter]:"
-if %ERRORLEVEL%==1 (echo.
-echo [H - Help]
-echo [M - Back to Menu]
-echo [R - Reload]
-echo [F - Set Filter]
-echo [N - Open a new cmd window with Single Monitor mode]
-echo [K - Kill Process]
-echo [X - Exit])
-if %ERRORLEVEL%==2 goto init
-if %ERRORLEVEL%==3 call :filter_set
-
-if %ERRORLEVEL%==4 echo. &set /p "pid_=[New Monitor] Please enter The PID:" & ^
-call :pid_check !pid_! &if !ERRORLEVEL!==0 set "pass=start" &start %~f0
-
-if %ERRORLEVEL%==5 echo. &set /p "pid_=[Kill Process] Please enter The PID:" & ^
-call :pid_check !pid_! &if !ERRORLEVEL!==0 taskkill /f /t /pid !pid!
-set "pid_="
-
-IF %ERRORLEVEL%==6 exit
-if %ERRORLEVEL%==7 set "all_reload=1"
-
-if defined all_reload exit /b
-goto all_opt
+exit /b
 
 :filter_echo
 set "filter_echo=" &for %%a in (%fl_search_check%) do set "search_echo[%%a]="
@@ -480,18 +492,16 @@ for %%a in (%fl_search_check%) do if defined search_echo[%%a] echo Search %%a:[!
 exit /b
 
 :filter_get
-set /a output_cnt=0
+for /l %%0 in (1, 1, !filter_out_cnt!) do set "filter_out[!filter_out_cnt!]="
+set /a filter_out_cnt=0
 
-set "filter_index[1]=4 5"
-for /f "tokens=*" %%n in ('netstat -ano') do set "raw=%%n" &for /f "tokens=1-5" %%a in ("!raw!") do (
+for /l %%0 in (1, 1, !output_cnt!) do for /f "tokens=1-5" %%a in ("!output[%%0]!") do (
+set "raw=!output[%%0]!"
 
-set "get=" &set "fl_match="
-set /a index=0 &for %%t in (pid port ip) do (
-set /a index+=1
+set "get=" &set "fl_match=" &set /a index=0
+for %%t in (pid port ip) do (set /a index+=1
 
-if defined filter_%%t (set "fl_match=1"
-
-for %%f in (!filter_%%t!) do (
+if defined filter_%%t set "fl_match=1" &for %%f in (!filter_%%t!) do (
 
 if !index!==1 (if %%a==TCP (if %%e==%%f set "get=1" &set "raw=!raw:  %%e=  {%%e}!") ^
 else if %%a==UDP (if %%d==%%f set "get=1" &set "raw=!raw:  %%d=  {%%d}!"))
@@ -501,11 +511,10 @@ if "!b:~0,1!"=="[" (for /f "tokens=2 delims=]" %%i in ("!b::=!") do if %%i==%%f 
 else if "!c:~0,1!"=="[" (
 for /f "tokens=2 delims=]" %%i in ("!c::=!") do if %%i==%%f set "get=1" &set "raw=!raw::%%i =:{%%i} !") ^
 else for /f "tokens=2,4 delims=:" %%i in ("%%b:%%c") do ^
-if %%i==%%f (set "get=1" &set "raw=!raw::%%i =:{%%i} !") else if %%j==%%f set "get=1" &set "raw=!raw::%%j =:{%%j} !"
+if %%i==%%f (set "get=1" &set "raw=!raw::%%i =:{%%i} !") else if "%%j"=="%%f" set "get=1" &set "raw=!raw::%%j =:{%%j} !"
 
 if !index!==3 set "b=%%b" &set "c=%%c" & ^
 if "!b:~0,1!"=="[" (for /f "tokens=1 delims=]" %%i in ("%%b") do if %%i]==%%f set "get=1" &set "raw=!raw:%%i]={%%i]}!") ^
-else if "!c:~0,1!"=="[" (for /f "tokens=1 delims=]" %%i in ("%%c") do if %%i]==%%f set "get=1" &set "raw=!raw:%%i]={%%i]}!") ^
 else (set "f=%%f" &if not "0!f:_=!"=="0!f!" (for %%x in (b c) do for /f "delims=:" %%y in ("!%%x!") do ^
 for /f "tokens=1-8 delims=." %%i in ("%%y.%%f") do (set /a checkvar=0
 if "%%i"=="%%m" (set /a checkvar+=1) else if "%%m"=="_" set /a checkvar+=1
@@ -514,17 +523,15 @@ if "%%k"=="%%o" (set /a checkvar+=1) else if "%%o"=="_" set /a checkvar+=1
 if "%%l"=="%%p" (set /a checkvar+=1) else if "%%p"=="_" set /a checkvar+=1
 if !checkvar!==4 set "get=1" &set "raw=!raw: %%y= {%%y}!")
 ) else for /f "tokens=1,3 delims=:" %%i in ("%%b:%%c") do ^
-if %%i==%%f (set "get=1" &set "raw=!raw:%%i={%%i}!") else if %%j==%%f set "get=1" &set "raw=!raw:%%j={%%j}!")
-)))
+if %%i==%%f (set "get=1" &set "raw=!raw:%%i={%%i}!") else if %%j==%%f set "get=1" &set "raw=!raw:%%j={%%j}!")))
 
 if not defined fl_match set "get=1"
 if defined get (if "%debug_print_raw%"=="1" echo !raw!
 if %%a==TCP if defined filter_TCP (
-if %%d==%state_listen% (if defined filter_listen set /a output_cnt+=1 &set output[!output_cnt!]=!raw!) ^
-else if %%d==%state_est% (if defined filter_est set /a output_cnt+=1 &set output[!output_cnt!]=!raw!) ^
-else if defined filter_handsh set /a output_cnt+=1 &set output[!output_cnt!]=!raw!)
-if %%a==UDP if defined filter_UDP set /a output_cnt+=1 &set output[!output_cnt!]=!raw!)
-set "raw=")
+if %%d==%state_listen% (if defined filter_listen set /a filter_out_cnt+=1 &set filter_out[!filter_out_cnt!]=!raw!) ^
+else if %%d==%state_est% (if defined filter_est set /a filter_out_cnt+=1 &set filter_out[!filter_out_cnt!]=!raw!) ^
+else if defined filter_handsh set /a filter_out_cnt+=1 &set filter_out[!filter_out_cnt!]=!raw!)
+if %%a==UDP if defined filter_UDP set /a filter_out_cnt+=1 &set filter_out[!filter_out_cnt!]=!raw!))
 if "%debug_print_raw%"=="1" pause
 exit /b
 
@@ -562,20 +569,23 @@ echo ===========================================================================
 echo.)
 set "filter=" &set /p "filter=Set Filter:"
 
-if defined filter (call :str_replace "filter" "!filter!" "*" "_"
+if defined filter (set "fl_start="
+
+call :str_replace "filter" "filter" "*" "_"
 
 for %%a in (!filter!) do (set "cont=%%a" &set "cont_=!cont:~0,1!"
 
-if defined fl_start (
 for %%n in (%fl_prefix%) do if !cont_!==%%n set "fl_start="
+
+if defined fl_start (
 for %%i in (pid port ip) do if "!fl_start!"=="%%i" (if defined filter_%%i (
 if "0!filter_%%i:%%a=!"=="0!filter_%%i!" set "filter_%%i=!filter_%%i! %%a") ^
 else set "filter_%%i=!filter_%%i! %%a")
 if "!fl_start!"=="cls" set "fl_wait=" &for %%i in (%fl_search_check%) do if %%a==%%i set "filter_%%a=")
 
-if defined next (
-if "!next!"=="pid" call :pid_check !cont! &if !ERRORLEVEL!==0 set "filter_pid=!filter_pid! !pid!"
-set "next=")
+if "!fl_wait!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
+set "filter_TCP=1" &set "filter_UDP=1" &set "filter_pid=" &set "filter_port=" &set "filter_ip=" & ^
+set "fl_wait=" &set "filter_switch="
 
 if not defined fl_start (
 if "%%a"=="/cls" set "fl_wait=cls"
@@ -588,25 +598,21 @@ else if "!cont_!"=="@" (if !cnt! LEQ 2 (
 if %%b==TCP for %%i in (!filter_check!) do (set "filter_%%i=1") &set "filter_UDP=" &set "filter_pid="
 if %%b==UDP for %%i in (!filter_check!) do (set "filter_%%i=") &set "filter_UDP=1") ^
 else if !cnt! GEQ 4 for %%i in (!filter_check!) do (set "filter_%%i=") &set "filter_TCP=1" &set "filter_%%b=1")))
-)
+))
 
-if defined get (
-REM temp
-set "get=")
-
-)
 if "!fl_wait!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
-set "filter_TCP=1" &set "filter_UDP=1" &set "filter_pid=" &set "filter_port=" &set "filter_ip="
+set "filter_TCP=1" &set "filter_UDP=1" &set "filter_pid=" &set "filter_port=" &set "filter_ip=" & ^
+set "filter_switch="
 
-set "filter_switch=" &for %%a in (%filter_check% %fl_search_check%) do ^
-if defined filter_%%a set "filter_switch=1"
+set "filter_switch="
+for %%a in (%filter_check%) do if not defined filter_%%a set "filter_switch=1"
+for %%a in (%fl_start_check%) do if defined filter_%%a set "filter_switch=1"
 
-set "cont=" &set "cont_=" &set "next=" &set "get=" &set "fl_wait="
-set "all_reload=1")
+set "cont=" &set "cont_=" &set "next=" &set "get=" &set "fl_wait=")
 exit /b
 
 :str_replace <return> <str> <from> <to>
-set "rp_get=" &set "return_=%~1" &set "str_=%~2" &set "form_=%~3" &set "to_=%~4"
+set "rp_get=" &set "return_=%~1" &set "str_=!%~2!" &set "form_=%~3" &set "to_=%~4"
 for %%a in (str_ form_ return_) do if not defined %%a exit /b 1
 :str_replace_loop
 for %%i in (20 30 50 100) do for /l %%0 in (0, 1, %%i) do ^
