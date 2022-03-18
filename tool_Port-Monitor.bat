@@ -384,11 +384,11 @@ if not defined filter_switch (set "output_switch=output"
 for %%o in (!output_switch!) do if !%%o_cnt! GTR 0 (
 for /l %%0 in (1, 1, !%%o_cnt!) do for /f "tokens=1-5" %%a in ("!%%o[%%0]!") do (set "raw=!%%o[%%0]!"
 
-if "%show_details%"=="0" (set "bool="
+if "%show_details%"=="1" (set "bool="
 for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_len%) do ^
 if %%p==!port_list[%%1][0]! (set "bool=1") else (if %%q==!port_list[%%1][0]! set "bool=1") & ^
 if defined bool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][1]!) do ^
-set "raw=!raw::%%i=:%%j!")
+set "raw=!raw::%%i =:%%j !")
 
 if %%a==TCP (set /a cnt_total[0][0]+=1 &set /a cnt=0 &set "c=%%c" &set "c=!c:{=!" &set "c=!c:}=!"
 for %%l in (%localhost% %nullhost% %localhost_IPv6% %nullhost_IPv6%) do ^
