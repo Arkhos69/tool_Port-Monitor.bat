@@ -32,7 +32,7 @@ This tool can do:
 ---
 ![search1](https://user-images.githubusercontent.com/98234168/159009845-8aee3d19-3ce7-4c11-8d51-44cf791a32f4.png)
 
-Did you ever useing netstat to draw a Di*k :)
+Did you ever using netstat to draw a Di*k :)
 
 ![search2](https://user-images.githubusercontent.com/98234168/159009912-0c3058d4-7741-4ac0-b524-5b445e131beb.png)
 
