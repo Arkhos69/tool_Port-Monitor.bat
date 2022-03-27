@@ -427,12 +427,12 @@ set "type_=%~1"
 
 if "%type_%"=="main" (
 for /f %%a in ('type sync_id_total.sync') do set /a sync_id_total=%%a
-set /a sync_id_total+=1 &echo !sync_id_total!>sync_id_total.sync
-set "win_set=" &set "pass=")
+set /a sync_id_total+=1 &echo !sync_id_total!>sync_id_total.sync)
 
 set "tmp=%sync_type%" &set "sync_type=%type_%"
 start %~f0
 set "sync_type=%tmp%" &set "tmp="
+set "win_set=" &set "pass="
 exit /b
 
 :sync_kill
@@ -731,14 +731,15 @@ echo loading......
 
 if defined reset set "reset=" &title=%win_title% &goto main
 
-if not defined sync_id (if exist *.sync del *.sync
+if not defined sync_id (
+if exist *.sync del *.sync &echo 0>sync_id_total.sync
 set /a sync_id_total=0 &set /a sync_id=0 &set "sync_type=main"
 set "win_title=Port Monitor" &title=!win_title!
 call :setESC &call :settings &call :run_cmd
 call :port_list &call :filter_settings &call :table_title
 call :init_filter &call :default_check &call :set_static_var &call :init_stats) ^
-else (if "%sync_type%"=="main" (if exist sync_id_total.sync (
-for /f %%a in ('type sync_id_total.sync') do set /a sync_id=%%a) else pause)
+else (for /l %%0 in (1, 1, !data_len!) do set "table[%%0]="
+if "%sync_type%"=="main" for /f %%a in ('type sync_id_total.sync') do set /a sync_id=%%a
 set "win_title=Port Monitor [!sync_id!]" &title=!win_title!
 call :init_filter &call :init_stats)
 set "sync_data=%sync_id%_data.sync" &set "sync_switch=%sync_id%_switch.sync"
