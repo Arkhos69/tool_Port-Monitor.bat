@@ -217,7 +217,7 @@ set "sp_get2=") ^
 
 else set "sp_get2=!sp_get2!!sp_!" &set /a str_len+=1) else (
 if defined sp_wait (if "!sp_!"=="!sp_wait!" set "sp_start=!sp_wait!!sp_wait!"
-set "sp_wait=") else (if "!sp_!"=="+" (set "sp_wait=+") else if "!sp_!"=="-" set "sp_wait=-"))
+set "sp_wait=") else for %%a in (+ -) do if "!sp_!"=="%%a" set "sp_wait=%%a")
 set "sp__=!sp_!")
 
 if "!sp_!"=="%split_char%" (set "sp_cut=1") ^
@@ -471,6 +471,7 @@ else if %%p==UDP for /f "tokens=4" %%u in ("%%a") do if %%u==%pid% set/a output_
 if "%popup_StatsTable%"=="1" ^
 echo [Image Name:%imgname% ^| PID:%pid%] [Mem Usage:%memusage%]>%sync_data% &echo echo.>>%sync_data%
 
+for /l %%0 in (1, 1, !data_len!) do set "table[%%0]="
 if "%stats_table_only%"=="1" (call :stats_table "output") else call :stats_table "output" "sort"
 
 title=%win_title% - %imgname%(%pid%) Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! ^(LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!^)]
@@ -536,7 +537,6 @@ if exist %sync_running% del %sync_running%
 call :sync_start "popup_stats" "Stats - %imgname%(%pid%)"))
 
 tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died
-for /l %%0 in (1, 1, !data_len!) do set "table[%%0]="
 goto single
 
 :all
@@ -551,6 +551,7 @@ for /f "tokens=*" %%a in ('netstat -ano') do set /a output_len+=1 &set output[!o
 
 if "%popup_StatsTable%"=="1" echo [netstat]>%sync_data% &echo echo.>>%sync_data%
 
+for /l %%0 in (1, 1, !data_len!) do set "table[%%0]="
 call :stats_table "%output_switch%" "sort"
 
 title=%win_title% - netstat Total:!cnt_total[0][0]! [Est:!cnt_est[0][0]! ^(LH:!cnt_est[1][0]! FH:!cnt_est[2][0]!^)]
@@ -592,7 +593,6 @@ if "%debug_running_time%"=="1" echo %time%
 
 call :all_opt
 for /l %%0 in (1, 1, !output_len!) do set "output[!output_len!]="
-for /l %%0 in (1, 1, !data_len!) do set "table[%%0]="
 goto all
 
 :all_opt
