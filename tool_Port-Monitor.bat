@@ -130,7 +130,13 @@ set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &set /a index=0) ^
 else if !index!==4 set "sort_num=5" &set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1
 
 if defined sort_num if defined bool_ (if !sort_num!==-1 goto kill
-for %%s in (!sort_num!) do set /a sort[%%s][0]+=1 &set "sort[%%s][!sort[%%s][0]!]=!%%$[%%0]:%localhost%=localhost!"))
+for %%s in (!sort_num!) do set /a sort[%%s][0]+=1 & ^
+set "sort[%%s][!sort[%%s][0]!]=!%%$[%%0]:%localhost%=localhost!" & ^
+if "%show_details%"=="1" set "dbool=" & ^
+for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_len%) do ^
+if %%p==!port_list[%%1][0]! (set "dbool=1") else (if %%q==!port_list[%%1][0]! set "dbool=1") & ^
+if defined dbool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][1]!) do ^
+for %%x in (!sort[%%s][0]!) do set "sort[%%s][%%x]=!sort[%%s][%%x]::%%i=:%%j!"))
 
 if "%stats_bln%"=="1" (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do for /l %%0 in (0, 1, 2) do (
