@@ -191,6 +191,10 @@ if "%popup_StatsTable%"=="1" echo !table[%%t]! >>%sync_data%
 
 if !Title_Instant_Print!==true echo !table[%%t]!
 ) else (set data[%%T]=NULL))
+
+if "%color_text%"=="1" for %%a in (cnt_est cnt_total) do for /l %%0 in (0, 1, 2) do ^
+set "%%a[%%0][0]=!%%a[%%0][0]:+=!" &set "%%a[%%0][0]=!%%a[%%0][0]:-=!" & ^
+set "%%a[%%0][0]=!%%a[%%0][0]:;=!" &set "%%a[%%0][0]=!%%a[%%0][0]:;=!"
 exit /b
 
 :table_split <string_data>
@@ -199,8 +203,7 @@ set /a str_len=0 &set /a sp_ary_len=0
 set "sp_start=" &set "sp_wait="
 :table_split_loop
 for %%i in (30 20 50 80 100) do for /l %%0 in (0, 1, %%i) do ^
-if defined sp_str (set "sp_cut="
-set "sp_=!sp_str:~0,1!" &set "sp_str=!sp_str:~1!"
+if defined sp_str (set "sp_=!sp_str:~0,1!" &set "sp_str=!sp_str:~1!"
 
 if "%color_text%"=="1" (
 
@@ -224,7 +227,7 @@ if "!sp_!"=="%split_char%" (set "sp_cut=1") ^
 else if not defined sp_start if not defined sp_wait set "sp_get=!sp_get!!sp_!" &set /a str_len+=1
 if not defined sp_str set "sp_cut=1"
 
-if defined sp_cut if defined sp_get set /a sp_ary_len+=1 & ^
+if defined sp_cut set "sp_cut=" &if defined sp_get set /a sp_ary_len+=1 & ^
 set "data_[!sp_ary_len!]=!sp_get!" &set "data_str_cnt[!sp_ary_len!]=!str_len!" & ^
 set "sp_get=" &set /a str_len=0
 
