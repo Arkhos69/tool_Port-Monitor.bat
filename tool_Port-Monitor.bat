@@ -548,8 +548,10 @@ if "%debug_running_time%"=="1" echo %time%
 
 call :filter_echo
 
-if not defined filter_switch (set "output_switch=output" &set /a output_len=0
+set /a output_len=0
 for /f "tokens=*" %%a in ('netstat -ano') do set /a output_len+=1 &set output[!output_len!]=%%a
+
+if not defined filter_switch (set "output_switch=output"
 ) else set "output_switch=fi_return" &call :filter_get
 
 if "%popup_StatsTable%"=="1" echo [netstat]>%sync_data% &echo echo.>>%sync_data%
