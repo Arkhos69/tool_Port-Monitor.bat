@@ -80,7 +80,7 @@ color 07
 if "%stat_table_only%"=="1" call :cmd_settings "stats"
 if "%popup_StatsTable%"=="1" call :sync_start "popup_stats" "netstat - Stats Table"
 goto all
-:/wg
+:/wd
 goto watchdog
 
 :single_check
@@ -129,14 +129,17 @@ set /a index+=1 &set "l=%%l" &if "!b:~0,4!"=="!l:~0,4!" (set "sort_num=4"
 set /a cnt_total[1][0]+=1 &set /a cnt_udp[1][0]+=1 &set /a index=0) ^
 else if !index!==4 set "sort_num=5" &set /a cnt_total[2][0]+=1 &set /a cnt_udp[2][0]+=1
 
-if defined sort_num if defined bool_ (if !sort_num!==-1 goto kill
+if defined sort_num if defined bool_ (if !sort_num!==-1 (if defined white_list (
+set "bool__=1" &for %%i in (!white_list!) do if "%%c"=="%%i" set "bool__=1"
+if not defined bool__ call :kill 1 "!%%$[%%0]!") else call :kill 1 "!%%$[%%0]!"
+set "sort_num=0")
 for %%s in (!sort_num!) do set /a sort[%%s][0]+=1 & ^
 set "sort[%%s][!sort[%%s][0]!]=!%%$[%%0]:%localhost%=localhost!" & ^
-if "%show_details%"=="1" set "dbool=" & ^
+if "%show_details%"=="1" ^
 for /f "tokens=2,4 delims=:" %%p in ("%%b:%%c") do for /l %%1 in (0, 1, %port_len%) do ^
-if %%p==!port_list[%%1][0]! (set "dbool=1") else (if %%q==!port_list[%%1][0]! set "dbool=1") & ^
-if defined dbool for %%i in (!port_list[%%1][0]!) do for %%j in (!port_list[%%1][1]!) do ^
-for %%x in (!sort[%%s][0]!) do set "sort[%%s][%%x]=!sort[%%s][%%x]::%%i=:%%j!"))
+for %%n in (%%p %%q) do if "%%n"=="!port_list[%%1][0]!" for %%i in (!port_list[%%1][0]!) do ^
+for %%j in (!port_list[%%1][1]!) do for %%x in (!sort[%%s][0]!) do ^
+set "sort[%%s][%%x]=!sort[%%s][%%x]::%%i=:%%j!"))
 
 if "%stats_bln%"=="1" (
 for %%a in (cnt_listen cnt_handsh cnt_est cnt_udp cnt_total) do for /l %%0 in (0, 1, 2) do (
@@ -350,8 +353,8 @@ for %%n in (%fl_prefix%) do if !cont_!==%%n set "fl_start="
 
 if defined fl_start (
 for %%i in (pid port ip) do if "!fl_start!"=="%%i" (if defined filter_%%i (
-if "0!filter_%%i:%%a=!"=="0!filter_%%i!" set "filter_%%i=!filter_%%i! %%a") ^
-else set "filter_%%i=!filter_%%i! %%a")
+set "bool_=" &for %%n in (!filter_%%i!) do if "%%n"=="%%a" set "bool_=1"
+if not defined bool_ set "filter_%%i=!filter_%%i! %%a") else set "filter_%%i=%%a")
 if "!fl_start!"=="cls" set "fl_wait=" &for %%i in (%fl_search_check%) do if %%a==%%i set "filter_%%a=")
 
 if "!fl_wait!"=="cls" set "filter_listen=1" &set "filter_est=1" &set "filter_handsh=1" & ^
@@ -710,6 +713,25 @@ if %errorlevel%==3 start %~f0
 if %errorlevel%==4 set /a delay=0
 if %errorlevel%==5 exit)
 goto single_quick
+
+:kill <int_msg> <string_port>
+call :sync_kill
+if "%~1"=="1" set "kill_msg=The Port "%state_listen%" had Connect to Foreign Host."
+set "kill_choice=" &echo %kill_msg% &echo %~2 &echo.
+:kill_loop
+set /p "kill_choice=Do you want to *KILL* this Process[%imgname%(%pid%)]?[y/n]:"
+tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto kill_close
+
+if defined kill_choice (if "%kill_choice%"=="y" (taskkill /f /t /pid %pid%
+tasklist /fi "pid eq %pid%" | findstr "%pid%" 2>&1>nul || goto died) ^
+else if "%kill_choice%"=="n" for /f "tokens=3" %%a in ("%~2") do (
+if defined white_list (set "bool_=" &for %%i in (!white_list!) do if "%%i"=="%%a" set "bool_=1"
+if not defined bool_ set "white_list=!white_list! %%a") else set "white_list=%%a"
+goto start))
+goto kill_loop
+:kill_close
+goto died
+exit /b
 
 :died
 cls &echo %imgname% is Closed.
