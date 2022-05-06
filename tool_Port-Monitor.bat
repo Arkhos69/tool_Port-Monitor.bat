@@ -133,6 +133,7 @@ if defined sort_num if defined bool_ (if !sort_num!==-1 (if defined white_list (
 set "bool__=1" &for %%i in (!white_list!) do if "%%c"=="%%i" set "bool__=1"
 if not defined bool__ call :kill 1 "!%%$[%%0]!") else call :kill 1 "!%%$[%%0]!"
 set "sort_num=0")
+
 for %%s in (!sort_num!) do set /a sort[%%s][0]+=1 & ^
 set "sort[%%s][!sort[%%s][0]!]=!%%$[%%0]:%localhost%=localhost!" & ^
 if "%show_details%"=="1" ^
